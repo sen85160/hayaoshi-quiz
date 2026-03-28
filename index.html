@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>早押しクイズバトル</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+:root {
+  --purple-dark: #26215C;
+  --purple-mid: #534AB7;
+  --purple-light: #7F77DD;
+  --purple-pale: #EEEDFE;
+  --purple-accent: #AFA9EC;
+  --gray-mid: #b0aad4;
+  --gray-dark: #4a4570;
+  --red: #e74c3c;
+  --gold: #f0c040;
+  --green: #27ae60;
+  --shadow: 0 4px 24px rgba(83,74,183,0.13);
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: linear-gradient(135deg, #1a1640 0%, #2d2870 50%, #1a1640 100%);
+  min-height: 100vh;
+  color: var(--purple-dark);
+}
+
+.screen { display: none !important; }
+.screen.active { display: flex !important; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+#gameScreen.active, #soloScreen.active, #waitingScreen.active { display: block !important; }
+
+button {
+  padding: 10px 20px; border: none; border-radius: var(--radius);
+  background: var(--purple-mid); color: white;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s, transform 0.1s;
+}
+button:hover { background: var(--purple-dark); transform: translateY(-1px); }
+button:disabled { background: var(--gray-mid); cursor: not-allowed; transform: none; }
+button.ghost { background: transparent; border: 2px solid var(--purple-mid); color: var(--purple-mid); }
+button.ghost:hover { background: var(--purple-pale); }
+
+input, select {
+  padding: 10px 14px; border: 2px solid var(--gray-mid); border-radius: var(--radius);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 14px;
+  background: white; color: var(--purple-dark); outline: none; transition: border-color 0.2s;
+}
+input:focus, select:focus { border-color: var(--purple-mid); }
+
+/* ===== タイトル ===== */
+#titleScreen { text-align: center; }
+.title-logo {
+  font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 72px;
+  letter-spacing: 4px; color: white; text-shadow: 0 0 40px rgba(175,169,236,0.6);
+  margin-bottom: 4px; line-height: 1;
+}
+.title-sub { color: var(--purple-accent); font-size: 13px; letter-spacing: 3px; margin-bottom: 48px; }
+.mode-buttons { display: flex; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center; }
+.mode-card {
+  background: rgba(255,255,255,0.08); border: 2px solid rgba(175,169,236,0.3);
+  border-radius: 16px; padding: 28px 36px; cursor: pointer; transition: all 0.2s;
+  color: white; text-align: center; min-width: 200px;
+}
+.mode-card:hover { background: rgba(175,169,236,0.15); border-color: var(--purple-accent); transform: translateY(-2px); }
+.mode-card-icon { font-size: 40px; margin-bottom: 10px; }
+.mode-card-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.mode-card-desc { font-size: 12px; color: var(--purple-accent); line-height: 1.5; }
+
+/* ===== セットアップ ===== */
+.setup-card {
+  background: white; border-radius: 16px; padding: 32px;
+  box-shadow: var(--shadow); width: 100%; max-width: 440px;
+}
+.setup-card h3 {
+  font-family: 'Zen Maru Gothic', sans-serif; font-size: 18px; color: var(--purple-dark);
+  margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--purple-pale);
+}
+.form-row { margin-bottom: 16px; }
+.form-row label { display: block; font-size: 13px; color: var(--gray-dark); margin-bottom: 6px; font-weight: 700; }
+.form-row input { width: 100%; }
+.radio-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.radio-group input[type="radio"] { display: none; }
+.radio-group label {
+  padding: 8px 16px; border: 2px solid var(--purple-mid); border-radius: 50px;
+  color: var(--purple-mid); cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s;
+}
+.radio-group input[type="radio"]:checked + label { background: var(--purple-mid); color: white; }
+.start-btn { width: 100%; padding: 14px; font-size: 16px; border-radius: 50px; margin-top: 8px; background: linear-gradient(135deg, var(--purple-mid), var(--purple-light)); }
+.back-btn { background: transparent; border: none; color: var(--purple-accent); font-size: 13px; cursor: pointer; margin-top: 12px; }
+.back-btn:hover { color: white; background: transparent; transform: none; }
+
+/* ===== 待機 ===== */
+#waitingScreen { padding: 20px; max-width: 500px; margin: 0 auto; }
+.waiting-card { background: white; border-radius: 16px; padding: 32px; box-shadow: var(--shadow); margin: 40px auto; max-width: 440px; }
+.waiting-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 20px; color: var(--purple-dark); margin-bottom: 16px; }
+.room-key-display {
+  background: var(--purple-pale); border: 2px dashed var(--purple-mid); border-radius: var(--radius);
+  padding: 14px; font-size: 28px; font-weight: 900; color: var(--purple-dark);
+  letter-spacing: 4px; margin-bottom: 16px; text-align: center;
+}
+.player-list { list-style: none; margin-bottom: 16px; }
+.player-list li {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: var(--purple-pale); border-radius: 8px; margin-bottom: 6px; font-weight: 700; color: var(--purple-dark);
+}
+.player-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--purple-light); }
+
+/* 新しいレイアウト用CSS */
+#gameScreen { padding: 10px; max-width: 1000px; margin: 0 auto; color: white; }
+.game-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 5px; }
+.game-main-container { display: flex; gap: 15px; align-items: flex-start; flex-wrap: wrap; }
+.game-left-col { flex: 1.6; min-width: 300px; }
+.game-right-col { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 12px; }
+
+.question-card { background: white; border-radius: 12px; padding: 15px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); margin-bottom: 10px; }
+.question-text { font-size: 1.1rem; font-weight: 700; line-height: 1.6; min-height: 60px; color: #26215C; }
+.buzz-banner { border-radius: 12px; padding: 10px; margin-bottom: 10px; text-align: center; font-weight: 900; }
+
+.players-status-card { background: white; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.player-status-box { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-radius: 8px; border: 1px solid #EEEDFE; color: #26215C; }
+.psb-name { flex: 1; font-size: 13px; font-weight: 700; }
+.psb-score { width: 50px; text-align: center; font-weight: 900; color: #534AB7; }
+.psb-status { width: 70px; text-align: right; font-size: 11px; font-weight: 700; }
+.answers-log-card { background: white; border-radius: 12px; padding: 10px; max-height: 180px; overflow-y: auto; color: #26215C; }
+
+
+/* ===== 早押しバナー ===== */
+.buzz-banner {
+  border-radius: var(--radius); padding: 16px 20px; margin-bottom: 12px;
+  text-align: center; font-family: 'Zen Maru Gothic', sans-serif; font-size: 18px; font-weight: 900;
+  letter-spacing: 1px; transition: all 0.3s;
+}
+.buzz-banner.nobody { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 400; }
+.buzz-banner.me { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; }
+.buzz-banner.other { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; animation: banner-flash 0.4s ease-out; }
+@keyframes banner-flash {
+  0% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* ===== アクションエリア ===== */
+.action-area { margin-bottom: 12px; }
+.buzz-btn {
+  width: 100%; padding: 20px; font-size: 22px; font-weight: 900; border-radius: 50px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b); letter-spacing: 2px;
+  box-shadow: 0 6px 24px rgba(231,76,60,0.35); transition: all 0.15s;
+}
+.buzz-btn:hover:not(:disabled) { background: linear-gradient(135deg, #c0392b, #962d22); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(231,76,60,0.45); }
+.buzz-btn:disabled { background: var(--gray-mid); box-shadow: none; }
+.answer-card { background: white; border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); border: 2px solid var(--green); }
+.answer-input-row { display: flex; gap: 8px; margin-top: 8px; }
+.answer-input-row input { flex: 1; }
+.surrender-row { display: flex; justify-content: center; margin-top: 8px; }
+.surrender-btn { background: transparent; border: 1px solid var(--gray-mid); color: var(--gray-dark); font-size: 12px; padding: 6px 16px; border-radius: 50px; }
+.surrender-btn:hover { background: #f8f8f8; color: var(--red); border-color: var(--red); transform: none; }
+.locked-notice {
+  background: #fffbe6; border: 1px solid #ffaa00; border-radius: var(--radius);
+  padding: 12px 16px; color: #e67e22; font-weight: 700; font-size: 14px; text-align: center;
+}
+.waiting-answer-notice {
+  background: #fff0f0; border: 1px solid var(--red); border-radius: var(--radius);
+  padding: 12px 16px; text-align: center; font-weight: 700; font-size: 14px; color: var(--red);
+}
+.surrendered-notice {
+  background: #f8f8f8; border: 1px solid var(--gray-mid); border-radius: var(--radius);
+  padding: 12px 16px; color: var(--gray-mid); font-size: 14px; text-align: center;
+}
+
+/* ===== 回答ログ ===== */
+.answers-log-card { background: white; border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.answers-log-title { font-size: 12px; color: var(--gray-dark); font-weight: 700; margin-bottom: 10px; }
+.answer-log-row {
+  display: flex; align-items: center; gap: 6px; padding: 6px 0;
+  border-bottom: 1px solid var(--purple-pale); font-size: 14px;
+}
+.answer-log-row:last-child { border-bottom: none; }
+.log-name { font-weight: 700; color: var(--purple-dark); min-width: 56px; flex-shrink: 0; }
+.log-ans { flex: 1; color: var(--purple-dark); }
+.log-mark { font-size: 16px; flex-shrink: 0; }
+
+/* ===== リザルト ===== */
+.result-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(26,22,64,0.85);
+  z-index: 200; align-items: center; justify-content: center; padding: 20px;
+}
+.result-overlay.show { display: flex; }
+.result-box {
+  background: white; border-radius: 20px; padding: 32px; max-width: 460px; width: 100%;
+  text-align: center; box-shadow: 0 8px 48px rgba(83,74,183,0.3);
+}
+.result-label { font-size: 12px; color: var(--gray-mid); letter-spacing: 2px; margin-bottom: 8px; }
+.result-status { font-family: 'Zen Maru Gothic', sans-serif; font-size: 48px; font-weight: 900; margin-bottom: 8px; }
+.result-status.success { color: var(--green); }
+.result-status.fail { color: var(--red); }
+.result-answer { font-size: 16px; color: var(--gray-dark); margin-bottom: 10px; }
+.result-winner { font-size: 15px; font-weight: 700; color: var(--purple-mid); margin-bottom: 16px; }
+.result-scores { background: var(--purple-pale); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; text-align: left; }
+.result-score-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; font-size: 14px; border-bottom: 1px solid var(--purple-accent); }
+.result-score-row:last-child { border-bottom: none; }
+.result-score-name { font-weight: 700; color: var(--purple-dark); }
+.result-score-num { font-weight: 700; color: var(--purple-mid); }
+.result-next-btn { width: 100%; padding: 13px; font-size: 15px; border-radius: 50px; }
+.result-waiting { color: var(--gray-mid); font-size: 13px; margin-top: 8px; }
+
+/* ===== 最終スコア ===== */
+#finalScreen.active { display: flex !important; }
+.final-card { background: white; border-radius: 20px; padding: 40px; max-width: 480px; width: 100%; text-align: center; box-shadow: var(--shadow); }
+.final-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 32px; font-weight: 900; color: var(--purple-dark); margin-bottom: 20px; }
+.final-winner-badge { background: linear-gradient(135deg, var(--gold), #e6a800); color: white; border-radius: 50px; padding: 10px 24px; font-size: 18px; font-weight: 700; margin-bottom: 20px; display: inline-block; }
+.final-score-table { width: 100%; margin-bottom: 24px; border-collapse: collapse; }
+.final-score-table th { font-size: 12px; color: var(--gray-dark); padding: 6px 10px; text-align: left; border-bottom: 2px solid var(--purple-pale); }
+.final-score-table td { padding: 9px 10px; font-size: 15px; border-bottom: 1px solid var(--purple-pale); }
+.final-rank { font-weight: 700; color: var(--purple-light); }
+.final-name { font-weight: 700; color: var(--purple-dark); }
+.final-pts { font-weight: 700; color: var(--purple-mid); font-size: 18px; }
+
+/* ===== 一人で特訓 ===== */
+#soloScreen { padding: 20px; max-width: 700px; margin: 0 auto; }
+.solo-card { background: white; border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); margin: 30px auto; max-width: 600px; }
+.solo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--purple-pale); padding-bottom: 12px; }
+.solo-life { color: var(--red); font-size: 1.4rem; letter-spacing: 2px; }
+.solo-question-area { font-size: 1.3rem; font-weight: 700; line-height: 1.8; min-height: 120px; margin-bottom: 20px; padding: 14px; background: var(--purple-pale); border-radius: 8px; color: var(--purple-dark); }
+/* ===== 一人で特訓 アクションエリア ===== */
+.solo-action-area { margin-bottom: 16px; }
+/* 早押しボタン（通常時） */
+.solo-buzz-btn {
+  width: 100%; padding: 18px; font-size: 20px; font-weight: 900; border-radius: 50px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b); letter-spacing: 2px;
+  box-shadow: 0 6px 24px rgba(231,76,60,0.35); transition: all 0.15s; color: white;
+  border: none; cursor: pointer;
+}
+.solo-buzz-btn:hover:not(:disabled) { background: linear-gradient(135deg, #c0392b, #962d22); transform: translateY(-2px); }
+.solo-buzz-btn:disabled { background: var(--gray-mid); box-shadow: none; cursor: not-allowed; transform: none; }
+/* 降参ボタン（早押し前に表示） */
+.solo-surrender-row { display: flex; justify-content: center; margin-top: 10px; }
+/* 回答エリア（早押し後に表示） */
+.solo-answer-card { background: white; border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); border: 2px solid var(--green); }
+.solo-answer-label { font-size: 13px; color: var(--green); font-weight: 700; margin-bottom: 8px; }
+.solo-controls { display: flex; gap: 12px; margin-top: 8px; }
+.solo-controls input { flex: 1; font-size: 1.1rem; }
+.solo-result-msg { min-height: 1.5rem; font-size: 1.1rem; font-weight: 700; text-align: center; margin-top: 8px; }
+.solo-result-msg.success { color: var(--green); }
+.solo-result-msg.error { color: var(--red); }
+.solo-retry-btn { display: none; width: 100%; padding: 13px; font-size: 15px; border-radius: 50px; margin-top: 12px; background: linear-gradient(135deg, var(--purple-mid), var(--purple-light)); }
+
+/* ===== オーバーレイ ===== */
+#overlay { display: none; position: fixed; inset: 0; background: rgba(26,22,64,0.7); z-index: 1000; align-items: center; justify-content: center; }
+#overlay.show { display: flex; }
+.overlay-box { background: white; border-radius: var(--radius); padding: 32px; text-align: center; min-width: 280px; max-width: 380px; box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
+.overlay-box p { font-size: 16px; font-weight: 700; color: var(--purple-dark); margin-bottom: 20px; }
+
+.shake { animation: shake 0.4s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)} }
+</style>
+</head>
+<body>
+
+<!-- タイトル -->
+<div id="titleScreen" class="screen active">
+  <div class="title-logo">早押しクイズ</div>
+  <p class="title-sub">quick quiz battle</p>
+  <div id="modeSelect">
+    <div class="mode-buttons">
+      <div class="mode-card" onclick="showOnlineSetup()">
+        <div class="mode-card-title">オンライン対戦</div>
+        <div class="mode-card-desc">友達と早押しバトル！</div>
+      </div>
+      <div class="mode-card" onclick="showSoloMode()">
+        <div class="mode-card-title">一人で特訓</div>
+        <div class="mode-card-desc">早押しして3ミス以内で正解！</div>
+      </div>
+    </div>
+  </div>
+  <div id="onlineSetup" style="display:none;">
+    <div class="setup-card">
+      <h3>オンライン対戦</h3>
+      <div class="form-row">
+        <label>あなたの名前</label>
+        <input id="playerName" placeholder="名前を入力" maxlength="10">
+      </div>
+      <div class="form-row">
+        <label>部屋の操作</label>
+        <div class="radio-group">
+          <input type="radio" name="roomAction" id="radioCreate" value="create">
+          <label for="radioCreate" onclick="toggleRoomAction('create')">部屋を作る</label>
+          <input type="radio" name="roomAction" id="radioJoin" value="join">
+          <label for="radioJoin" onclick="toggleRoomAction('join')">部屋に入る</label>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>合言葉</label>
+        <input id="roomKeyInput" placeholder="合言葉を入力">
+      </div>
+      <div id="createSettings">
+        <div class="form-row">
+          <label>出題数</label>
+          <div class="radio-group">
+            <input type="radio" name="qCount" id="qc5" value="5"><label for="qc5">5問</label>
+            <input type="radio" name="qCount" id="qc10" value="10"><label for="qc10">10問</label>
+            <input type="radio" name="qCount" id="qc15" value="15"><label for="qc15">15問</label>
+          </div>
+        </div>
+      </div>
+      <button class="start-btn" onclick="startOnline()">スタート</button>
+      <div style="text-align:center;"><button class="back-btn" onclick="backToTitle()">← 戻る</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 待機 -->
+<div id="waitingScreen" class="screen">
+  <div class="waiting-card">
+    <div class="waiting-title" id="waitingTitle">参加者を待っています...</div>
+    <div class="room-key-display" id="roomKeyDisplay"></div>
+    <p style="font-size:12px;color:var(--gray-dark);margin-bottom:12px;text-align:center;">この合言葉を仲間に伝えよう</p>
+    <ul class="player-list" id="playerListWaiting"></ul>
+    <button id="startGameBtn" style="display:none;width:100%;border-radius:50px;padding:13px;" onclick="hostStartGame()">ゲーム開始</button>
+    <button class="ghost" style="width:100%;margin-top:8px;border-radius:50px;" onclick="leaveRoom()">退出する</button>
+  </div>
+</div>
+
+<!-- ゲーム -->
+<div id="gameScreen" class="screen">
+  <div style="width:100%;">
+    <div class="game-header">
+      <div class="game-title"> Quiz Battle</div>
+      <div class="badge" id="qNumBadge">Q1</div>
+    </div>
+
+    <div class="game-main-container">
+      <div class="game-left-col">
+        <div class="buzz-banner nobody" id="buzzBanner">問題文を読んでいます...</div>
+        <div class="question-card">
+          <span class="category-tag" id="onlineCatTag"></span>
+          <div class="question-label" style="color:#b0aad4; font-size:10px;">QUESTION</div>
+          <div class="question-text" id="onlineQuestionText"></div>
+        </div>
+        <div class="action-area" id="actionArea"></div>
+      </div>
+
+      <div class="game-right-col">
+        <div class="players-status-card" id="playersStatusCard"></div>
+        <div class="answers-log-card">
+          <div style="font-size:11px; font-weight:700; margin-bottom:5px;">回答ログ</div>
+          <div id="answersLog"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- リザルト -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-box">
+    <div class="result-label">正解発表</div>
+    <div id="resultQuestionFull" style="font-size:14px; color:#534AB7; font-weight:700; margin-bottom:15px; padding:10px; background:#f0f0ff; border-radius:8px; line-height:1.4; text-align:left;"></div>
+    <div class="result-status" id="resultStatus"></div>
+    <div class="result-answer" id="resultAnswer"></div>
+    <div class="result-winner" id="resultWinner"></div>
+    <div class="result-scores" id="resultScores"></div>
+    <button class="result-next-btn" id="nextQuestionBtn" onclick="pressNextQuestion()">次の問題へ</button>
+    <div class="result-waiting" id="resultWaiting"></div>
+  </div>
+</div>
+
+<!-- 最終スコア -->
+<div id="finalScreen" class="screen">
+  <div class="final-card">
+    <div class="final-title"> 最終結果</div>
+    <div id="finalWinnerBadge"></div>
+    <table class="final-score-table">
+      <thead><tr><th>順位</th><th>名前</th><th>正解数</th></tr></thead>
+      <tbody id="finalScoreTable"></tbody>
+    </table>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button style="flex:1;border-radius:50px;padding:12px;" id="playAgainBtn" onclick="playAgain()">もう一度</button>
+      <button class="ghost" style="flex:1;border-radius:50px;padding:12px;" onclick="backToTitle()">タイトルへ</button>
+    </div>
+    <div id="finalWaitMsg" style="font-size:12px;color:var(--gray-mid);margin-top:8px;text-align:center;"></div>
+  </div>
+</div>
+
+<!-- 一人で特訓 -->
+<div id="soloScreen" class="screen">
+  <div style="max-width:640px;margin:0 auto;padding:20px;width:100%;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div class="game-title" style="font-size:18px;color:white;font-weight:900;"> 一人で特訓</div>
+      <button class="ghost" style="font-size:12px;padding:6px 14px;border-color:rgba(255,255,255,0.4);color:white;" onclick="backToTitle()">終了</button>
+    </div>
+    <div class="solo-card">
+      <div class="solo-header">
+        <span id="soloCatTag" style="font-size:12px;font-weight:700;color:var(--purple-mid);background:var(--purple-pale);padding:4px 12px;border-radius:50px;">カテゴリ</span>
+        <div class="solo-life" id="soloLife">❤️❤️❤️</div>
+      </div>
+      <div class="solo-question-area" id="soloQuestionArea"></div>
+
+      <!-- アクションエリア：早押し前・押した後で切り替え -->
+      <div class="solo-action-area" id="soloActionArea">
+        <!-- 初期状態：早押しボタン＋降参ボタン -->
+        <button class="solo-buzz-btn" id="soloBuzzBtn" onclick="soloPressbuzz()">⚡ 早押し！</button>
+        <div class="solo-surrender-row">
+          <button class="surrender-btn" onclick="soloPressSurrender()">🏳 降参する</button>
+        </div>
+      </div>
+
+      <div id="soloResultMsg" class="solo-result-msg"></div>
+      <button class="solo-retry-btn" id="soloRetryBtn" onclick="soloInitGame()">次の問題へ</button>
+    </div>
+  </div>
+</div>
+
+<!-- オーバーレイ -->
+<div id="overlay">
+  <div class="overlay-box">
+    <p id="overlayMsg">待機中...</p>
+    <button id="overlayBtn" style="display:none;" onclick="hideOverlay()">OK</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, update, remove, push, onDisconnect } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyAp14vmxoLdh4WwD9kKMnmTaLZBAMNC2L8",
+  authDomain: "shiritori-game-4898f.firebaseapp.com",
+  databaseURL: "https://shiritori-game-4898f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "shiritori-game-4898f",
+  storageBucket: "shiritori-game-4898f.firebasestorage.app",
+  messagingSenderId: "962873120214",
+  appId: "1:962873120214:web:bd54dda254c926cdb78077"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+window._db = db; window._ref = ref; window._set = set; window._get = get;
+window._onValue = onValue; window._update = update; window._remove = remove;
+window._push = push; window._onDisconnect = onDisconnect;
+</script>
+
+<script>
+/* ===== 問題データ ===== */
+const QUIZ_LIST = [
+        { q: "飛鳥時代の政治家で、冠位十二階や十七条憲法を制定し、遣隋使を派遣した人物は誰？", a: ["聖徳太子", "厩戸皇子"], cat: "歴史" },
+        { q: "1853年、浦賀に黒船で来航し、日本に開国を要求したアメリカの海軍提督は誰？", a: ["ペリー", "マシュー・ペリー"], cat: "歴史" },
+        { q: "「パンはパンでも、食べられないパンは何？」というなぞなぞの定番の答えとなる、調理器具は何？", a: ["フライパン"], cat: "なぞなぞ" },
+        { q: "日本で最も長い川は信濃川ですが、世界で最も長い川は何？", a: ["ナイル川"], cat: "地理" },
+        { q: "光合成を行う際に、植物が根から吸い上げた水と、空気中から取り込んだ何を使ってデンプンを作る？", a: ["二酸化炭素"], cat: "理科" },
+        { q: "福沢諭吉が創立した、東京都港区に本部を置く日本の私立大学は何？", a: ["慶應義塾大学", "慶応大学"], cat: "教育" },
+    { q: "日本で最も水深が深く、最大水深423.4メートルを誇る、秋田県にある湖は何？", a: ["田沢湖"], cat: "地理" },
+    { q: "1467年、細川勝元と山名宗全らが対立し、11年にわたって京都を焼き尽くした戦乱は何？", a: ["応仁の乱"], cat: "歴史" },
+    { q: "元素記号はAg。電気伝導率や熱伝導率が金属の中で最大である、漢字一文字の貴金属は何？", a: ["銀"], cat: "理科" },
+    { q: "「走れメロス」や「人間失格」などの作品で知られる、青森県出身の無頼派作家は誰？", a: ["太宰治"], cat: "文学" },
+    { q: "北欧の国で、サンタクロースの故郷やムーミンの発祥地として知られる、首都をヘルシンキに置く国はどこ？", a: ["フィンランド"], cat: "地理" },
+    { q: "ピアノの鍵盤数は、標準的なフルサイズのもので全部でいくつある？", a: ["88", "88鍵"], cat: "音楽" },
+    { q: "1904年に勃発した日露戦争において、東郷平八郎率いる連合艦隊がロシアのバルチック艦隊を破った海戦は何？", a: ["日本海海戦"], cat: "歴史" },
+    { q: "野球で、投手が一人も走者を出さず、一度も出塁を許さずに完投勝利することを「何ゲーム」という？", a: ["完全試合", "パーフェクトゲーム"], cat: "スポーツ" },
+    { q: "日本初の公害問題とされる、明治時代に栃木県で発生した銅山の鉱毒事件を「何鉱毒事件」という？", a: ["足尾銅山鉱毒事件", "足尾銅山"], cat: "歴史" },
+    { q: "1185年、平氏が滅亡し源頼朝が実権を握るきっかけとなった、山口県で行われた合戦は何？", a: ["壇ノ浦の戦い"], cat: "歴史" },
+    { q: "1543年、種子島に漂着したポルトガル人によって日本に伝えられた武器は何？", a: ["鉄砲", "火縄銃"], cat: "歴史" },
+    { q: "1867年、江戸幕府第15代将軍・徳川慶喜が政権を朝廷に返上した出来事は何？", a: ["大政奉還"], cat: "歴史" },
+    { q: "聖徳太子が制定した、才能や功績のある人物を12の等級に分ける制度は何？", a: ["冠位十二階"], cat: "歴史" },
+    { q: "「鳴かぬなら殺してしまえホトトギス」という句を詠んだ、尾張出身の戦国武将は誰？", a: ["織田信長"], cat: "歴史" },
+    { q: "フランス革命で処刑された、国王ルイ16世の妃は誰？", a: ["マリー・アントワネット"], cat: "歴史" },
+    { q: "世界で最も面積が広い国はロシアですが、2番目に広い国はどこ？", a: ["カナダ"], cat: "地理" },
+    { q: "日本で最も北にある島は択捉島ですが、最も南にある島は何？", a: ["沖ノ鳥島"], cat: "地理" },
+    { q: "赤道直下に位置し、「ガラパゴス諸島」を領有している南米の国はどこ？", a: ["エクアドル"], cat: "地理" },
+    { q: "元素記号「Fe」で表される、磁石に引き寄せられる性質を持つ金属は何？", a: ["鉄"], cat: "理科" },
+    { q: "光が1年間に進む距離を1とする、天文学で使われる距離の単位は何？", a: ["光年"], cat: "理科" },
+    { q: "人間の体の中で最も硬い組織とされる、歯の表面を覆っている部分はどこ？", a: ["エナメル質"], cat: "理科" },
+    { q: "水溶液の性質で、pHが7より小さいものを酸性といいますが、7より大きいものを何という？", a: ["アルカリ性", "塩基性"], cat: "理科" },
+    { q: "18世紀に万有引力の法則を発見した、イギリスの物理学者は誰？", a: ["ニュートン", "アイザック・ニュートン"], cat: "理科" },
+    { q: "昆虫の体のつくりは、頭部、胸部と、あともう一つは何？", a: ["腹部"], cat: "理科" },
+    { q: "「メロスは激怒した」という有名な書き出しで始まる、太宰治の短編小説は何？", a: ["走れメロス"], cat: "文学" },
+    { q: "「祇園精舎の鐘の声」という一節で始まる、平氏の興亡を描いた軍記物語は何？", a: ["平家物語"], cat: "文学" },
+    { q: "ルネサンス期に「モナ・リザ」や「最後の晩餐」を描いた芸術家は誰？", a: ["レオナルド・ダ・ヴィンチ"], cat: "芸術" },
+    { q: "「トンネルを抜けるとそこは雪国であった」という一節で始まる、川端康成の小説は何？", a: ["雪国"], cat: "文学" },
+    { q: "アンデルセン童話で、王子への恋のために声を失った王女が登場する物語は何？", a: ["人魚姫"], cat: "文学" },
+    { q: "オリンピックの五輪のマークで、青、黄、黒、緑ともう一色は何色？", a: ["赤"], cat: "スポーツ" },
+    { q: "サッカーの試合で、一人の選手が一試合に3得点以上挙げることを何という？", a: ["ハットトリック"], cat: "スポーツ" },
+    { q: "テニスの四大大会のうち、唯一クレーコートで行われるフランスの大会は何？", a: ["全仏オープン"], cat: "スポーツ" },
+    { q: "将棋の駒で、成ると「龍王」になるのは飛車ですが、「龍馬」になるのは何？", a: ["角行", "角"], cat: "エンタメ" },
+    { q: "百円玉の表面にデザインされている花は何？", a: ["桜"], cat: "雑学" },
+    { q: "世界保健機関のことを、アルファベット3文字で何という？", a: ["WHO"], cat: "雑学" },
+    { q: "1ダースは12個ですが、1グロスは何個のこと？", a: ["144", "144個"], cat: "雑学" },
+    { q: "日本で初めてノーベル賞を受賞した、物理学者の名前は誰？", a: ["湯川秀樹"], cat: "科学" },
+    { q: "「海」という漢字の部首はさんずいですが、「悔」という漢字の部首は何？", a: ["りっしんべん", "立心偏"], cat: "国語" },
+    { q: "イタリア料理で、米をスープで炊いた料理を何という？", a: ["リゾット"], cat: "食" },
+    { q: "太陽系の惑星の中で、最も太陽に近い位置にあるのは何？", a: ["水星"], cat: "科学" },
+    { q: "2022年まで使われていた千円札の肖像画に描かれている、黄熱病の研究で知られる細菌学者は誰？", a: ["野口英世"], cat: "歴史" },
+    { q: "「目には目を、歯には歯を」という復讐法で知られる、古代バビロニアの法典は何？", a: ["ハンムラビ法典"], cat: "歴史" },
+    { q: "日本で最も島が多い都道府県はどこ？", a: ["長崎県"], cat: "地理" },
+    { q: "ギターの弦は通常6本ですが、バイオリンの弦は何本？", a: ["4本", "4"], cat: "音楽" },
+    { q: "野球で、1回から9回まで一人で投げ抜くことを漢字2文字で何という？", a: ["完投"], cat: "スポーツ" },
+    { q: "日本最南端の有人島であり、星空が美しいことで知られる沖縄県の島は何？", a: ["波照間島"], cat: "地理" },
+    { q: "北極には住んでおらず、南極にのみ生息する飛べない鳥は何？", a: ["ペンギン"], cat: "理科" },
+    { q: "2025年4月、シングル『MIRAI』でデビューを果たした、サバイバルオーディション番組『PRODUCE 101 JAPAN THE GIRLS』で誕生したグループは何?", a: ["ME:I", "ミーアイ"], cat: "音楽" },
+    { q: "解試と省試を経て残った受験者に対し皇帝自らが行った、中国・宋の時代に創設された科挙の最終審査を何という?", a: ["殿試"], cat: "歴史" },
+    { q: "「生物種は絶えず進化しなければ絶滅する」という仮説を、小説『鏡の国のアリス』の登場人物にちなんで何という?", a: ["赤の女王仮説"], cat: "科学" },
+    { q: "「世界の終末に神が人類をさばく」というキリスト教の信仰を主題としている、システィーナ礼拝堂の壁に描かれたミケランジェロの絵画は何?", a: ["最後の審判"], cat: "芸術" },
+    { q: "A賞と同等の賞品が用意されることも多い、最後のくじを引いた人が獲得できる一番くじの賞は何?", a: ["ラストワン賞"], cat: "生活" },
+    { q: "中世ヨーロッパにおける騎士の剣術にルーツをもつ、オリンピックではフルーレ、エペ、サーブルの3種目がおこなわれるスポーツは何?", a: ["フェンシング"], cat: "スポーツ" },
+    { q: "レーズンが入った白いクリームをビスケットで挟んだ、六花亭が販売する北海道銘菓は何?", a: ["マルセイバターサンド"], cat: "料理" },
+    { q: "何かと目障りだったり、邪魔になったりするもののことを、「目の上の何」という?", a: ["瘤", "こぶ"], cat: "ことわざ" },
+    { q: "店頭でコーヒーを配るサービスでもおなじみの、コーヒー豆や輸入食品を多く取り揃える全国チェーンの小売店は何?", a: ["カルディコーヒーファーム", "カルディ"], cat: "社会" },
+    { q: "水質汚染の指標のひとつ「生物化学的酸素要求量」のことを、アルファベット3文字で何という?", a: ["BOD"], cat: "科学" },
+    { q: "物理学者のウィルソンが考案した、内部を水やアルコールの蒸気で満たし、荷電粒子の通り道を白い線として観察できるようにした装置を何という?", a: ["霧箱"], cat: "科学" },
+    { q: "YouTubeで「銀の盾」が贈られるのは、チャンネル登録者が何人以上の投稿者?", a: ["10万人", "100,000人"], cat: "IT" },
+    { q: "「黄色い帽子のおじさん」と一緒に暮らしている、世界中で人気の絵本に登場するサルのキャラクターは何?", a: ["おさるのジョージ"], cat: "アニメ" },
+    { q: "松尾芭蕉が訪れて「閑さや岩にしみ入る蝉の声」という句を詠んだことでも有名な、「山寺」の通称で呼ばれる山形県のお寺はどこ?", a: ["立石寺"], cat: "地理" },
+    { q: "名前に「ん」のつくものを食べたり、ゆず湯に浸かったりする風習がある、1年でもっとも昼の時間が短くなる日を何という?", a: ["冬至"], cat: "生活" },
+    { q: "雨の日の高速道路で特に起こりやすい、タイヤと路面の間に水の膜ができ、車の制御が利かなくなる現象を何という?", a: ["ハイドロプレーニング現象"], cat: "生活" },
+    { q: "「紫」にかかる「あかねさす」のように、和歌において、ある特定の言葉の前に置かれて調子を整えるなどの役割を果たす言葉を何という?", a: ["枕詞"], cat: "文学" },
+    { q: "16世紀にグレゴリオ暦が生み出されるまでヨーロッパで広く用いられた、古代ローマの将軍が制定した暦は何?", a: ["ユリウス暦"], cat: "歴史" },
+    { q: "英語圏では「Minute Waltz」とも呼ばれる、恋人が飼っていたペットが着想元とされるショパンのピアノ曲は何?", a: ["子犬のワルツ"], cat: "音楽" },
+    { q: "選挙の開票特番などで、開票率がOパーセントに近い状態で特定の候補者の当選確実を報じることを何という?", a: ["ゼロ打ち"], cat: "政治" },
+    { q: "態度や言葉遣いがあまりにも丁寧すぎるせいで、かえって失礼にあたってしまうことをいった四字熟語は何?", a: ["慇懃無礼"], cat: "言語" },
+    { q: "『おんな港町』『舟唄』『雨の慕情』などのヒット曲で知られる女性演歌歌手は誰?", a: ["八代亜紀"], cat: "音楽" },
+    { q: "毎年、自然科学のデータブック「理科年表」を発行している天文学の研究機関は何?", a: ["国立天文台"], cat: "科学" },
+    { q: "国内にある3つの難関大学が「SKY」の総称で呼ばれる、厳しい受験競争が行われているアジアの国はどこ?", a: ["韓国", "大韓民国"], cat: "地理" },
+    { q: "16世紀後半にトルコからオランダへ持ち込まれ、のちに世界最初とされるバブル経済のきっかけとなった植物は何?", a: ["チューリップ"], cat: "歴史" },
+    { q: "巻き込まれた際には岸と並行に泳ぐのが良いとされる、岸から沖へ向かう海水の流れのことを何という?", a: ["離岸流"], cat: "地学" },
+    { q: "645年、中大兄皇子と中臣鎌足らが蘇我蝦夷・入鹿親子を死に追いやった事件を何という?", a: ["乙巳の変"], cat: "歴史" },
+    { q: "夏の大型特番である『音楽の日』や、毎週月曜の『CDTVライブ! ライブ!』といった番組を放送している民放キー局は何?", a: ["TBS"], cat: "社会" },
+    { q: "ブドウ科の植物に寄生し、強烈な匂いでおびきよせたハエを受粉に利用する東南アジアに分布し、世界最大ともいわれる花を咲かせる植物は何?", a: ["ラフレシア"], cat: "生物" },
+    { q: "アムール川流域へのロシアの進出を背景に1689年に清とロシアの間で結ばれた、両国の国境などを定めた条約は何?", a: ["ネルチンスク条約"], cat: "歴史" },
+    { q: "軽量で耐久性が高いことから、ジェームズ・ウェッブ宇宙望遠鏡の巨大な反射鏡に用いられている、原子番号4、元素記号Beで表される元素は何?", a: ["ベリリウム"], cat: "科学" },
+    { q: "女性向けアパレルブランドの「N+」も展開している、「おねだん以上。」をキャッチコピーに掲げる企業グループは?", a: ["ニトリ"], cat: "社会" },
+    { q: "白河藩主として天明の大飢饉を乗り切ったのち老中に任命され、質素倹約を軸とする寛政の改革を推し進めた江戸時代の政治家は誰?", a: ["松平定信"], cat: "歴史" },
+    { q: "モネの『ラ・ジャポネーズ』などの絵画を所蔵する、岡倉天心らが収集した東洋美術のコレクションでも有名なアメリカの美術館はどこ?", a: ["ボストン美術館"], cat: "芸術" },
+    { q: "ACミランやレアル・マドリードといったサッカークラブの胸スポンサーになっている、ドバイを本拠地とする航空会社は何?", a: ["エミレーツ航空"], cat: "社会" },
+    { q: "1903年に、人類初の動力飛行に成功したアメリカ人兄弟は何?", a: ["ライト兄弟"], cat: "科学" },
+    { q: "モモやトマトなどの皮を、熱湯にさっとくぐらせてから、冷水で冷やしてむく料理の下ごしらえを何という?", a: ["湯むき"], cat: "料理" },
+    { q: "「自分の力量を知らず、偉そうに振る舞う様子」を意味する、「夜」という漢字を使った四字熟語は何?", a: ["夜郎自大"], cat: "言語" },
+    { q: "「未完成」という言葉をもじった名前で活動する、『アスノヨゾラ哨戒班』などの楽曲で知られるボカロPは誰?", a: ["Orangestar"], cat: "音楽" },
+    { q: "アルファベット3文字では「GHG」と略される、地球から熱を逃げにくくするはたらきのある大気中の気体のことを何という?", a: ["温室効果ガス"], cat: "環境" },
+    { q: "アルジェリアの首都はアルジェですが、ナイジェリアの首都は?", a: ["アブジャ"], cat: "地理" },
+    { q: "1449年、中国・明の英宗が、オイラート軍のエセンに敗れて捕虜となった事件を何という?", a: ["土木の変"], cat: "歴史" },
+    { q: "「夏の大三角」を構成する3つの星とは、ベガ、アルタイルと何?", a: ["デネブ"], cat: "天文" },
+    { q: "チリやアルゼンチンなど、南米の多くの国で公用語になっている言語は何?", a: ["スペイン語"], cat: "言語" },
+    { q: "足高の制や上米の制などが定められた、江戸幕府8代将軍徳川吉宗のもと行われた改革をなんという?", a: ["享保の改革"], cat: "歴史" },
+    { q: "上海など5つの港の開港や香港のイギリス割譲などが定められたアヘン戦争の講和条約はなに?", a: ["南京条約"], cat: "歴史" },
+    { q: "『踊り子』『東京フラッシュ』『怪獣の花唄』などの代表曲がある日本のアーティストは誰?", a: ["Vaundy"], cat: "音楽" },
+    { q: "生成AIが事実と異なる情報を出力してしまうことを幻覚を意味する英単語からなんという?", a: ["ハルシネーション"], cat: "IT" },
+    { q: "Instagramで親しい友達にのみ公開されるストーリーズの枠は何色に表示される？", a: ["緑色"], cat: "SNS" },
+    { q: "ブルボン朝の最盛期を築き「太陽王」と称された、フランス国王は誰?", a: ["ルイ14世"], cat: "歴史" },
+    { q: "食べるとどんな言語でも通じるようになる、『ドラえもん』に登場するひみつ道具は何?", a: ["ほんやくコンニャク"], cat: "アニメ" },
+    { q: "『E.T.』や『ジュラシック・パーク』といった名作映画でメガホンを取った映画監督は誰?", a: ["スティーヴン・スピルバーグ"], cat: "映画" },
+    { q: "元々優れているものは、多少質が落ちてもそれなりの価値を保つということを、「腐っても何」という?", a: ["鯛"], cat: "ことわざ" },
+    { q: "滝廉太郎作曲の唱歌『花』で、「春のうららの」と歌われている川は何?", a: ["隅田川"], cat: "音楽" },
+    { q: "国民の祝日である「文化の日」と「勤労感謝の日」は共に何月にある?", a: ["11月"], cat: "社会" },
+    { q: "足が二股になった「徽軫灯籠」などが見どころの、金沢市にある庭園は何?", a: ["兼六園"], cat: "地理" },
+    { q: "南アフリカの反アパルトヘイト運動を指導し、のちに黒人初の同国大統領となった政治家は誰?", a: ["ネルソン・マンデラ"], cat: "歴史" },
+    { q: "コンポーザーのAyaseとボーカルのikuraからなる、『夜に駆ける』や『アイドル』などのヒット曲で知られる音楽ユニットは何?", a: ["YOASOBI"], cat: "音楽" },
+    { q: "ドラマ『孤独のグルメ』の井之頭五郎役や、大河ドラマでの重厚な演技で知られる日本の俳優は誰?", a: ["松重豊"], cat: "エンタメ" },
+    { q: "サッカーW杯で日本人初となる3大会連続ゴールを記録した、「伸びしろ」というフレーズでも知られる元日本代表選手は誰?", a: ["本田圭佑"], cat: "スポーツ" },
+    { q: "北欧のスカンジナビア半島に位置し、複雑に入り組んだ「フィヨルド」の海岸線で知られる、首都をオスロに置く国はどこ?", a: ["ノルウェー"], cat: "地理" },
+    { q: "滋賀県の面積の約6分の1を占める、日本で最も大きな湖は何?", a: ["琵琶湖"], cat: "地理" },
+    { q: "不定積分を求めた際、微分の過程で消えてしまった定数の代わりとして付け加えられる、一般に「C」で表される定数を何という?", a: ["積分定数"], cat: "数学" },
+    { q: "1とその数自身でしか割り切れない、2、3、5、7などの自然数を何という?", a: ["素数"], cat: "数学" },
+    { q: "地球の重力に抗って、地表スレスレの円軌道を回り続けるために必要な、秒速約7.9kmの速度を何という?", a: ["第一宇宙速度"], cat: "物理" },
+    { q: "日本ではかつて聖徳太子が定めた「冠位十二階」において、最も高い位の色とされたのは何色?", a: ["紫"], cat: "歴史" },
+    { q: "濃口、淡口、再仕込みなどの種類がある、大豆・小麦・塩を原料とする日本の代表的な調味料は何?", a: ["醤油"], cat: "料理" },
+    { q: "高比良くるまと松井ケムリからなる、2023年の「M-1グランプリ」で優勝したお笑いコンビは何?", a: ["令和ロマン"], cat: "エンタメ" },
+    { q: "ドラマ『アンナチュラル』の主題歌として書き下ろされた、米津玄師の代表曲といえば何?", a: ["Lemon"], cat: "音楽" },
+    { q: "青森県の東部に位置し、斧のような形をした、大間崎や恐山で知られる半島は何?", a: ["下北半島"], cat: "地理" },
+    { q: "惑星の重力を利用して探査機の進路を変えたり、加速・減速したりする航法を何という?", a: ["スイングバイ"], cat: "天文" },
+    { q: "優性の法則、分離の法則、独立の法則からなる、遺伝に関する基本的な法則を何という?", a: ["メンデルの法則"], cat: "生物" },
+    { q: "六歌仙の紅一点であり、「花の色は移りにけりな...」という歌で知られる平安時代の女流歌人は誰?", a: ["小野小町"], cat: "文学" },
+    { q: "ボカロPの「ハチ」としても活動していた、『パプリカ』や『KICK BACK』などのヒット曲を連発しているアーティストは誰?", a: ["米津玄師"], cat: "音楽" },
+    { q: "アブダビやドバイなど、7つの首長国から構成される中東の連邦国家は何?", a: ["アラブ首長国連邦", "UAE"], cat: "地理" },
+    { q: "春に立ちのぼる霧のような現象を指し、夜に起こるものは「朧（おぼろ）」、昼に起こるものは何という?", a: ["霞", "かすみ"], cat: "自然" },
+    { q: "その強烈な悪臭から「死体花」とも呼ばれる、世界最大級の巨大な花を咲かせるサトイモ科の植物は何?", a: ["ショクダイオオコンニャク"], cat: "生物" },
+    { q: "県庁所在地を水戸市に置き、納豆の生産や袋田の滝などで有名な、関東地方の県はどこ?", a: ["茨城県"], cat: "地理" },
+    { q: "Googleが開発した、テキスト、画像、音声などを高度に処理できる最新のマルチモーダルAIモデルは何?", a: ["Gemini"], cat: "IT" },
+    { q: "救急車が通り過ぎる際にサイレンの音程が変化して聞こえるように、音源と観測者の相対的な速度によって周波数が変化する現象を何という?", a: ["ドップラー効果"], cat: "物理" },
+    { q: "ゲーム『マリオカート』シリーズに登場する、前を走るカートを自動的に追尾して攻撃するアイテムは何?", a: ["赤甲羅"], cat: "ゲーム" },
+    { q: "「秋」という漢字に「魚」と書くとカジカですが、「青」という漢字に「魚」と書くと何という魚になる?", a: ["鯖", "サバ"], cat: "生物" },
+    { q: "主人公の碇シンジが、謎の敵「使徒」に対抗するために巨大な汎用ヒト型決戦兵器に乗り込み戦う、庵野秀明監督のアニメ作品は何?", a: ["エヴァンゲリオン", "新世紀エヴァンゲリオン"], cat: "アニメ" },
+    { q: "コーヒー発祥の地ともいわれ、アフリカ大陸で唯一独立を維持し続けた歴史を持つ、アディスアベバを首都とする国はどこ?", a: ["エチオピア"], cat: "地理" },
+    { q: "記号「L」で表される、10センチメートル四方の立方体の体積に等しい単位は何?", a: ["リットル"], cat: "科学" },
+    { q: "バリン、ロイシン、イソロイシンなど、体内で合成できないため食事から摂取する必要がある9種類のアミノ酸を何という?", a: ["必須アミノ酸"], cat: "医学" },
+    { q: "「ダルマ宰相」の愛称で親しまれ、二・二六事件で暗殺された、大正・昭和初期に蔵相や首相を務めた政治家は誰?", a: ["高橋是清"], cat: "歴史" },
+    { q: "特に水鳥の生息地として国際的に重要な湿地を保護することを目的とした、1971年に採択された条約は何?", a: ["ラムサール条約"], cat: "環境" },
+    { q: "スナック菓子の「うまい棒」において、もっとも初期から発売されていたフレーバーのうち、現在まで販売が続いている味はなに?", a: ["サラミ味"], cat: "生活" },
+    { q: "「世界の半分」と称えられるほど繁栄した、サファヴィー朝の第5代君主アッバース1世が都を置いたイランの都市はどこ?", a: ["イスファハーン"], cat: "歴史" },
+    { q: "ギリシャ文字の「π」で表される、円の直径に対する周の長さの比を何という?", a: ["円周率"], cat: "数学" },
+    { q: "集合論や論理回路において、「積の否定は否定の和に等しい」といった関係を示す法則を、数学者の名前から何という?", a: ["ド・モルガンの法則"], cat: "数学" },
+    { q: "中国・殷の時代に、亀の甲羅や動物の骨に刻んで占いに用いられた、漢字の原型とされる文字は何?", a: ["甲骨文字"], cat: "歴史" },
+    { q: "カンガルーやコアラのように、未熟な状態で生まれた子供を育児嚢で育てる哺乳類のグループを何という?", a: ["有袋類"], cat: "生物" },
+    { q: "「昔、男ありけり」という書き出しで知られ、在原業平をモデルとしたとされる、平安時代初期の歌物語は何?", a: ["伊勢物語"], cat: "文学" },
+    { q: "動詞などの活用形のうち、「～ば」を付けて理由や確定した条件を表す際に用いられる形を何という?", a: ["已然形"], cat: "国語" },
+    { q: "サッカーのゴールや走り高跳びの支柱の間に、水平に渡された棒のことを英語で何という?", a: ["クロスバー"], cat: "スポーツ" },
+    { q: "サイコロで、「1」の裏側にある数字はいくつ?", a: ["6"], cat: "生活" },
+    { q: "アルファベット3文字で、「GHQ」と表される、第二次世界大戦後の日本を占領・統治した組織は何?", a: ["連合国軍最高司令官総司令部"], cat: "歴史" },
+    { q: "アルファベット3文字で、「GDP」と表される、一定期間内に国内で生み出された付加価値の合計は何?", a: ["国内総生産"], cat: "経済" },
+    { q: "アルファベット3文字で、「EEZ」と表される、沿岸から200海里までの範囲に設定される水域は何?", a: ["排他的経済水域"], cat: "地理" },
+    { q: "アルファベット3文字で、「NGO」と表される、営利を目的とせず国際的な課題に取り組む民間組織は何?", a: ["非政府組織"], cat: "社会" },
+    { q: "アルファベット3文字で、「NHK」と表される、放送法に基づいて設立された日本の公共放送を担う機関は何?", a: ["日本放送協会"], cat: "社会" },
+    { q: "アルファベット3文字で、「DNA」と表される、遺伝情報の本体である物質は何?", a: ["デオキシリボ核酸"], cat: "科学" },
+    { q: "アルファベット3文字で、「PKO」と表される、国連が紛争地域に派遣して平和の維持にあたる活動を何という?", a: ["平和維持活動"], cat: "政治" },
+    { q: "アルファベット3文字で、「NPO」と表される、営利を目的とせず社会的な活動を行う市民団体を何という?", a: ["非営利組織"], cat: "社会" },
+    { q: "アルファベット3文字で、「IMF」と表される、国際的な通貨協力や為替の安定を図るために設立された機関は何?", a: ["国際通貨基金"], cat: "経済" },
+    { q: "アルファベット3文字で、「ICT」と表される、情報処理と通信を組み合わせた技術の総称は何?", a: ["情報通信技術"], cat: "IT" },
+    { q: "アルファベット3文字で、「WHO」と表される、すべての人々の健康を目的とする国際連合の専門機関は何?", a: ["世界保健機関"], cat: "社会" },
+    { q: "アルファベット3文字で、「WTO」と表される、自由貿易の促進を目的として1995年に設立された国際機関は何?", a: ["世界貿易機関"], cat: "経済" },
+    { q: "クリプトン・フューチャー・メディアが開発した、青緑色のツインテールが特徴的な世界的人気を誇るバーチャルシンガーは誰？", a: ["初音ミク"], cat: "音楽" },
+    { q: "九州地方で最も人口が多く、県庁所在地に博多区や中央区を置く都道府県はどこ？", a: ["福岡県"], cat: "地理" },
+    { q: "ラード、小麦粉、砂糖を原料とする、沖縄県を代表する伝統的な焼き菓子は何？", a: ["ちんすこう"], cat: "食" },
+    { q: "「激動の日々を経て、復興を遂げた昭和の時代を顧みる」ことを趣旨とする、4月29日の国民の祝日は何？", a: ["昭和の日"], cat: "社会" },
+    { q: "ゲーム『マリオブラザーズ』シリーズに登場する、踏むと甲羅に閉じこもるカメのキャラクターは何？", a: ["ノコノコ"], cat: "ゲーム" },
+    { q: "元素記号はC。ダイヤモンドや黒鉛の主成分であり、有機化合物の骨格をなす元素は何？", a: ["炭素"], cat: "理科" },
+    { q: "葛飾北斎の連作『富嶽三十六景』の中でも、巨大な波の間から富士山を望む構図で特に有名な作品は何？", a: ["神奈川沖浪裏"], cat: "芸術" },
+    { q: "岡山県倉敷市と香川県坂出市を結ぶ、道路と鉄道の併用橋としては世界最大級の規模を誇る橋は何？", a: ["瀬戸大橋"], cat: "地理" },
+    { q: "北アメリカに広く分布し、アメリカ合衆国の国鳥にも指定されている、頭部の白い羽毛が特徴的な猛禽類は何？", a: ["ハクトウワシ"], cat: "生物" },
+    { q: "中央アメリカから南アメリカに生息する、世界最長の体長と2本の大きな角を持つことで知られるカブトムシは何？", a: ["ヘラクレスオオカブト"], cat: "生物" },
+    { q: "本性を隠して、おとなしそうに振る舞うことを、ある動物の名前を使って「何を被る」という？", a: ["猫", "ねこ"], cat: "ことわざ" },
+    { q: "本能寺の変の後、織田信長の跡継ぎや領地の再分配を決めるために行われた、羽柴秀吉らが集まった会議は何？", a: ["清須会議"], cat: "歴史" },
+    { q: "1815年、ナポレオン率いるフランス軍がイギリス・プロイセンなどの連合軍に敗れ、失脚の決定打となった戦いは何？", a: ["ワーテルローの戦い"], cat: "歴史" },
+    { q: "松尾芭蕉が「五月雨を集めて早し」と詠んだことでも知られる、日本三大急流の一つは何？", a: ["最上川"], cat: "地理" },
+    { q: "漢文において、読む順番を入れ替えるために漢字の左下に付けられる、レ点や一二点などの符号を総称して何という？", a: ["返点"], cat: "国語" },
+    { q: "ばねの伸びは加えられた力に比例するという、物理学における弾性の法則を「何の法則」という？", a: ["フックの法則"], cat: "理科" },
+    { q: "揉め事の後はかえって事態が落ち着き、以前よりも良い状態になることを「何降って地固まる」という？", a: ["雨","雨降って地固まる"], cat: "ことわざ" },
+    { q: "いくら意見を説き聞かせても、全く効き目がないことを、ある動物の名前を使って「何の耳に念仏」という？", a: ["馬","馬の耳に念仏"], cat: "ことわざ" },
+    { q: "他人のために危険を冒して、自分から危ない目に遭うことを、ある食べ物を使って「火中の何を拾う」という？", a: ["栗","火中の栗を拾う"], cat: "ことわざ" },
+    { q: "失敗しないように、あらかじめ十分な準備や用心をしておくことを例えた言葉は「転ばぬ先の何」？", a: ["杖","転ばぬ先の杖"], cat: "ことわざ" },
+    { q: "好きなことには熱心に取り組むため、自然と上達が早くなるということを「上手」という言葉を用いてなんという？", a: ["好きこそものの上手なれ"], cat: "ことわざ" },
+    { q: "どんなに不便な場所でも、長く暮らして慣れてしまえば居心地が良くなることを「都」という文字を使って何という？", a: ["住めば都"], cat: "ことわざ" },
+    { q: "人の好みは様々であり、一概には言えないということを、苦い植物の名を使って「何食う虫も好き好き」という？", a: ["蓼", "たで","蓼食う虫も好き好き"], cat: "ことわざ" },
+    { q: "大勢の意見を一度で抑え込み、物事を決定づけるような有力者の一言を「何の一声」という？", a: ["鶴","鶴の一声"], cat: "ことわざ" },
+    { q: "他人のことはよく分かるが、自分の身近な状況についてはかえって気づきにくいことを「何下暗し」という？", a: ["灯台","灯台下暗し"], cat: "ことわざ" },
+    { q: "手応えや反応が全くなく、何の効果も期待できないことを、「何に釘」という？", a: ["糠", "ぬか","糠に釘"], cat: "ことわざ" },
+    { q: "大した苦労もせずに、一度に多くの利益を得ることを、ある穀物の名前を使って「濡れ手で何」という？", a: ["粟","濡れ手で粟"], cat: "ことわざ" },
+    { q: "物事はその道の専門家に任せるのが一番であるということを、ある食べ物の名前を使って「何は何屋」という？", a: ["餅","餅は餅屋"], cat: "ことわざ" },
+    { q: "自分のした悪い行いの報いを、自分自身が受けることを、金属に生じる酸化物を用いて「何から出た錆」という？", a: ["身","身から出た錆"], cat: "ことわざ" },
+    { q: "膵臓の中に斑点状に散らばっている、インスリンなどのホルモンを分泌する細胞の集まりを何という？", a: ["ランゲルハンス島"], cat: "理科" },
+    { q: "ナポレオンの首席画家を務め、『ナポレオンの戴冠式』や『アルプスを越えるナポレオン』を描いたフランスの画家は誰？", a: ["ジャック・ルイ・ダヴィッド", "ダヴィッド"], cat: "芸術" },
+    { q: "1968年に日本人として初めてノーベル文学賞を受賞した、『雪国』や『伊豆の踊子』で知られる作家は誰？", a: ["川端康成"], cat: "文学" },
+    { q: "代表作に『城の崎にて』や『暗夜行路』がある「小説の神様」と称された白樺派の作家は誰？", a: ["志賀直哉"], cat: "文学" },
+    { q: "『フィガロの結婚』や『魔笛』などのオペラを遺したオーストリアの天才作曲家は誰？", a: ["モーツァルト", "ヴォルフガング・アマデウス・モーツァルト"], cat: "音楽" },
+    { q: "漫画『ドラえもん』に登場する、家が裕福で自慢話が多く、「ママー」という口癖がおなじみのキャラクターは何？", a: ["スネ夫", "骨川スネ夫"], cat: "アニメ" },
+    { q: "漫画『鬼滅の刃』において、主人公・竈門炭治郎に「全集中の呼吸」を教えた、常に天狗の面をつけている育手は誰？", a: ["鱗滝左近次"], cat: "アニメ" },
+    { q: "大韓民国で使用されている、漢字では「圓」と表記される通貨単位は何？", a: ["ウォン"], cat: "社会" },
+    { q: "1999年に導入された、欧州連合（EU）の多くの加盟国で共通して使われている通貨は何？", a: ["ユーロ"], cat: "社会" },
+    { q: "導体に電流を流したときに発生する熱量は、電流の2乗と抵抗の積に比例するという法則を「何の法則」という？", a: ["ジュールの法則"], cat: "理科" },
+    { q: "「惑星の軌道は太陽を一つの焦点とする楕円である」など、惑星の運動に関する3つの法則を「何の法則」という？", a: ["ケプラーの法則"], cat: "理科" },
+    { q: "金属の中で最も融点が高く、電球のフィラメントなどに利用される元素記号Wの元素は何？", a: ["タングステン"], cat: "理科" },
+    { q: "1381年にイギリスで発生した、重税に反対して農民たちが起こした大規模な一揆を、指導者の名から「何の乱」という？", a: ["ワット・タイラーの乱"], cat: "歴史" },
+    { q: "1922年に創立された、日本に現存する政党の中で最も長い歴史を持つ政党は何？", a: ["日本共産党"], cat: "政治" },
+    { q: "「新製品が安い」のキャッチフレーズでおなじみの、茨城県水戸市に本社を置く家電量販店チェーンは何？", a: ["ケーズデンキ"], cat: "社会" },
+    { q: "鮭の頭、大豆、野菜などを酒粕とともに煮込んだ、栃木県を代表する伝統的な郷土料理は何？", a: ["しもつかれ"], cat: "食" },
+    { q: "体が硬い骨板に覆われて箱のような形をしており、皮膚から「パフトキシン」という毒を出す魚は何？", a: ["ハコフグ"], cat: "生物" },
+    { q: "「氷上のチェス」とも呼ばれる、ストーンを滑らせて円の中心に近づけるウィンタースポーツは何？", a: ["カーリング"], cat: "スポーツ" },
+    { q: "史上最多となる45回の幕内優勝を記録し、現在は宮城野親方として活動している第69代横綱は誰？", a: ["白鵬", "白鵬翔"], cat: "スポーツ" },
+    { q: "ドラマ『3年B組金八先生』の主演や、海援隊のボーカルとして『贈る言葉』などのヒット曲で知られる人物は誰？", a: ["武田鉄矢"], cat: "エンタメ" },
+    { q: "かつては北ローデシアと呼ばれ、ジンバブエとの国境にヴィクトリアの滝を擁する、首都をルサカに置く国はどこ？", a: ["ザンビア"], cat: "地理" },
+    { q: "ナイジェリアやコンゴ民主共和国など、アフリカの17カ国が一斉に独立を果たした1960年のことを何という？", a: ["アフリカの年"], cat: "歴史" },
+    { q: "特定の金属や塩類を炎の中に入れると、その種類に応じて特有の色を示す化学反応を何という？", a: ["炎色反応"], cat: "理科" },
+    { q: "こぐま座で最も明るい2等星で、天の北極の近くに位置するため航海の目印にされてきた星は何？", a: ["ポラリス", "北極星"], cat: "天文" },
+    { q: "元々は「神の代理人」を意味する、イスラム国家における最高指導者の称号は何？", a: ["カリフ"], cat: "歴史" },
+    { q: "野球で、バッターが一度の打撃で4得点を挙げる「満塁ホームラン」を英語で何という？", a: ["グランドスラム"], cat: "スポーツ" },
+    { q: "英語で「自由な」という意味がある、特定の組織に属さず個人で仕事を請け負う人を何という？", a: ["フリーランス"], cat: "社会" },
+    { q: "1945年、ドイツの戦後処理などを話し合うために米英ソの首脳が集まった、ベルリン近郊の都市で行われた会談は何？", a: ["ポツダム会談"], cat: "歴史" },
+    { q: "パソコンなどの周辺機器を接続するための規格で、現在は「Type-C」が普及しているものは何？", a: ["USB"], cat: "IT" },
+    { q: "「三顧の礼」によって迎えられたエピソードが有名な、劉備に仕えた軍師は誰？", a: ["諸葛亮", "諸葛孔明"], cat: "歴史" },
+    { q: "太陽系で最も大きい惑星であり、その表面には「大赤斑」と呼ばれる巨大な渦があるのは何？", a: ["木星"], cat: "天文" },
+    { q: "2024年に発行された新一万円札の肖像に採用された、「日本資本主義の父」と称される人物は誰？", a: ["渋沢栄一"], cat: "歴史" },
+    { q: "ボクシングで、ダウンした相手が10カウント以内に立ち上がれないことによる決着を何という？", a: ["KO", "ノックアウト"], cat: "スポーツ" },
+    { q: "「月日は百代の過客にして」という書き出しで始まる、松尾芭蕉の紀行文は何？", a: ["奥の細道"], cat: "文学" },
+    { q: "代表曲に『Pretender』や『Subtitle』がある、藤原聡がボーカルを務めるバンドは何？", a: ["Official髭男dism", "ヒゲダン"], cat: "音楽" },
+    { q: "植物の細胞に含まれる緑色の粒で、光エネルギーを吸収して光合成を行う場所を何という？", a: ["葉緑体"], cat: "理科" },
+    { q: "元素記号「Cu」。電気を通しやすく、10円硬貨の主成分としても使われている金属は何？", a: ["銅"], cat: "理科" },
+    { q: "物体がその運動状態を維持しようとする性質を、漢字2文字で何という？", a: ["慣性"], cat: "理科" },
+    { q: "地震の揺れの大きさを表す尺度は「震度」ですが、地震そのもののエネルギーの大きさを表す尺度は何？", a: ["マグニチュード"], cat: "理科" },
+    { q: "「水に沈めた物体が受ける浮力は、その物体が押しのけた水の重さに等しい」という原理を何の原理という？", a: ["アルキメデスの原理"], cat: "理科" },
+    { q: "生物の進化において、もとは同じ器官が異なる形や機能に変化したものを「何器官」という？", a: ["相同器官"], cat: "理科" },
+    { q: "三角形の3つの内角の和は、平面上では常に何度になる？", a: ["180度", "180"], cat: "数学" },
+    { q: "空気中に含まれる水蒸気が冷やされ、水滴に変わり始める温度のことを何という？", a: ["露点"], cat: "理科" },
+    { q: "元素記号「H」。宇宙で最も多く存在し、最も軽い元素は何？", a: ["水素"], cat: "理科" },
+    { q: "1からその数までの全ての整数を掛け合わせたものを、感嘆符「!」を使って何という？", a: ["階乗"], cat: "数学" },
+    { q: "「質量保存の法則」を提唱し、近代化学の父とも呼ばれるフランスの化学者は誰？", a: ["ラヴォアジエ"], cat: "理科" },
+    { q: "太陽の表面に見られる、周囲よりも温度が低いために黒く見える部分はどこ？", a: ["黒点"], cat: "天文" },
+    { q: "液体が沸騰して気体になるときの温度を「沸点」といいますが、液体が凍って固体になるときの温度を何という？", a: ["融点", "凝固点"], cat: "理科" },
+    { q: "「遺伝の法則」を発見したことで知られる、エンドウ豆の交配実験を行ったオーストリアの修道士は誰？", a: ["メンデル"], cat: "理科" },
+    { q: "直角三角形において、斜辺の2乗は他の2辺の2乗の和に等しいという定理を「何の定理」という？", a: ["三平方の定理", "ピタゴラスの定理"], cat: "数学" },
+    { q: "光が異なる物質の境界で折れ曲がる現象を「屈折」といいますが、境界で跳ね返る現象を何という？", a: ["反射"], cat: "理科" },
+    { q: "人間の血液循環において、心臓から全身へ血液を送り出す役割を持つポンプ室はどこ？", a: ["左心室"], cat: "理科" },
+    { q: "原子の中心にあり、陽子と中性子から構成されている部分はどこ？", a: ["原子核"], cat: "理科" },
+    { q: "日本の気象において、初夏にオホーツク海高気圧から吹き込む冷たく湿った北東風を何という？", a: ["やませ"], cat: "地学" },
+    { q: "電流の単位はアンペア、電圧の単位はボルトですが、電気抵抗の単位は何？", a: ["オーム"], cat: "理科" },
+    { q: "「お口の恋人」をスローガンに掲げ、キシリトールガムやチョコパイなどのヒット商品を持つ菓子メーカーは何？", a: ["ロッテ"], cat: "企業" },
+    { q: "1980年に任天堂が発売した、十字ボタンの原型が採用された携帯型ゲーム機のシリーズは何？", a: ["ゲーム&ウオッチ", "ゲームウォッチ"], cat: "商品" },
+    { q: "「ココアはやっぱり」というキャッチコピーでおなじみの、日本を代表する製菓・飲料メーカーは何？", a: ["森永製菓", "森永"], cat: "企業" },
+    { q: "世界で初めてインスタントラーメンである「チキンラーメン」を発売した日本の食品メーカーは何？", a: ["日清食品", "日清"], cat: "企業" },
+    { q: "「吸引力の変わらない、ただ一つの掃除機」というキャッチコピーで知られるイギリスの家電メーカーは何？", a: ["ダイソン"], cat: "企業" },
+    { q: "かつては「松下電器産業」という社名だった、テクニクスやナショナルなどのブランドも展開していた家電メーカーは何？", a: ["パナソニック", "Panasonic"], cat: "企業" },
+    { q: "1994年にソニー・コンピュータエンタテインメントが発売した、日本を代表する家庭用ゲーム機は何？", a: ["プレイステーション", "PlayStation"], cat: "製品" },
+    { q: "「100人乗っても大丈夫！」というCMのフレーズで有名な、物置などの鋼製家具を製造する企業は何？", a: ["稲葉製作所", "イナバ物置"], cat: "企業" },
+    { q: "看板商品の「チョコバット」や「源氏パイ」で知られる、静岡県浜松市に本社を置く製菓メーカーは何？", a: ["三立製菓"], cat: "企業" },
+    { q: "1919年に日本で初めて乳酸菌飲料を発売した、「カラダにピース」のスローガンで知られるブランドは何？", a: ["カルピス"], cat: "商品" },
+    { q: "「ココロも満タンに」というキャッチコピーでおなじみの、日本の石油製品販売会社は何？", a: ["コスモ石油"], cat: "企業" },
+    { q: "1971年に銀座に日本1号店をオープンした、「ゴールデンアーチ」と呼ばれるロゴが特徴のファストフード店は何？", a: ["マクドナルド"], cat: "企業" },
+    { q: "創業者アドルフ・ダスラーの愛称と苗字を組み合わせて名付けられた、3本線のロゴで知られるドイツのスポーツ用品メーカーは何？", a: ["アディダス"], cat: "企業" },
+    { q: "世界最大の家具量販店で、店舗内のレストランで提供されるスウェーデン料理も人気の企業は何？", a: ["IKEA", "イケア"], cat: "企業" },
+    { q: "ロゴマークの「スウッシュ」が特徴的な、エア・ジョーダンなどのヒット作を持つアメリカのスポーツ用品メーカーは何？", a: ["ナイキ", "NIKE"], cat: "企業" },
+    { q: "1979年にソニーが発売した、音楽を屋外で聴く文化を定着させたポータブルオーディオプレーヤーは何？", a: ["ウォークマン", "WALKMAN"], cat: "製品" },
+    { q: "「マチのほっとステーション」というキャッチコピーを掲げる、三菱商事傘下のコンビニエンスストアチェーンは何？", a: ["ローソン"], cat: "企業" },
+    { q: "1959年にタカラ（現タカラトミー）が発売した、日本の代表的な鉄道玩具シリーズは何？", a: ["プラレール"], cat: "商品" },
+    { q: "もともとは「東洋コルク工業」という社名だった、「魂動デザイン」などの独自設計で知られる広島県の自動車メーカーは何？", a: ["マツダ"], cat: "企業" },
+    { q: "「やめられない、とまらない」というCMフレーズで大ヒットした、カルビーのスナック菓子は何？", a: ["かっぱえびせん"], cat: "商品" },
+    { q: "1963年に現在の社名「任天堂株式会社」に変更した、京都に本社を置く世界的なゲームメーカーは何？", a: ["任天堂"], cat: "企業" },
+    { q: "検索エンジンやAndroidOSの開発で知られ、親会社にアルファベット（Alphabet）を持つIT企業は何？", a: ["Google", "グーグル"], cat: "企業" },
+    { q: "料理の基本である「さしすせそ」のうち、「せ」が表している調味料は何？", a: ["醤油", "しょうゆ"], cat: "料理" },
+    { q: "イタリア語で「私を元気づけて」という意味がある、マスカルポーネチーズとコーヒーを使った人気のスイーツは何？", a: ["ティラミス"], cat: "食" },
+    { q: "「母の味」の代名詞ともいわれ、肉、じゃがいも、玉ねぎなどを醤油や砂糖で煮込む日本の家庭料理は何？", a: ["肉じゃが"], cat: "料理" },
+    { q: "世界三大スープの一つに数えられる、トムヤムクンの「クン」とは、日本語で何の食材のこと？", a: ["エビ", "海老"], cat: "料理" },
+    { q: "小麦粉をバターで炒めて作る、シチューやグラタンのベースとなる白いソースを「何ソース」という？", a: ["ホワイトソース", "ベシャメルソース"], cat: "料理" },
+    { q: "薄く焼いたクレープを何層にも重ねて作る、「千枚のクレープ」という意味の名前を持つケーキは何？", a: ["ミルクレープ"], cat: "食" },
+    { q: "「赤い悪魔」とも呼ばれる、ニンニク、唐辛子、オリーブオイルで作るパスタソースを「何風」という？", a: ["アラビアータ"], cat: "料理" },
+    { q: "フランス語で「稲妻」という意味がある、細長いシュー生地にクリームを詰め、チョコをかけたお菓子は何？", a: ["エクレア"], cat: "食" },
+    { q: "ベトナム料理でよく食べられる、米粉で作られた平打ちの麺を何という？", a: ["フォー"], cat: "料理" },
+    { q: "肉や魚の臭み消しや香り付けに使われる、ローリエやパセリなどを束ねたものを何という？", a: ["ブーケガルニ"], cat: "調理" },
+    { q: "ポルトガルから伝わった「パン・デ・ロー」が語源とされる、長崎県の名産として知られる焼き菓子は何？", a: ["カステラ"], cat: "食" },
+    { q: "ハワイ語で「切る」や「混ぜる」という意味がある、マグロなどの魚介をタレで和えた郷土料理は何？", a: ["ポキ", "ポケ"], cat: "料理" },
+    { q: "パイ生地の中に卵液、クリーム、ベーコンなどを入れて焼き上げる、フランス・ロレーヌ地方の郷土料理は何？", a: ["キッシュ"], cat: "料理" },
+    { q: "「焼いたクリーム」という意味がある、表面の砂糖を焦がしてカリカリに仕上げたフランスのデザートは何？", a: ["クリームブリュレ","ブリュレ"], cat: "食" },
+    { q: "そば粉を薄く焼いた生地で卵やハムを包む、フランス・ブルターニュ地方発祥の料理は何？", a: ["ガレット"], cat: "料理" },
+    { q: "日本語では「冷製クリームスープ」と呼ばれる、ジャガイモとポロねぎを使った冷たいスープは何？", a: ["ビシソワーズ"], cat: "料理" },
+    { q: "ドイツ語で「木のケーキ」という意味がある、年輪のような模様が特徴的な焼き菓子は何？", a: ["バウムクーヘン"], cat: "食" },
+    { q: "パスタの茹で加減で、芯がわずかに残る程度の理想的な状態をイタリア語で何という？", a: ["アルデンテ"], cat: "調理" },
+    { q: "インド発祥の飲み物で、ヨーグルトをベースに果物やスパイスを混ぜたものを何という？", a: ["ラッシー"], cat: "食" },
+    { q: "スペイン語で「フライパン」という意味がある、サフランで色付けしたご飯と海鮮を炊き込む料理は何？", a: ["パエリア"], cat: "料理" },
+    { q: "秋に美しい紅葉を見せ、その葉の形がカエルの手に似ていることから名がついたとされる植物は何？", a: ["カエデ", "モミジ"], cat: "植物" },
+    { q: "昆虫の体にある、空気を取り入れるための小さな穴を何という？", a: ["気門"], cat: "生物" },
+    { q: "根、茎、葉の区別がなく、胞子で増えるワカメやコンブなどの生物を総称して何という？", a: ["藻類"], cat: "生物" },
+    { q: "「生きた化石」の代表格で、1938年に南アフリカ近海で発見された深海魚は何？", a: ["シーラカンス"], cat: "生物" },
+    { q: "植物の細胞を包んでいる、動物細胞には見られない丈夫な仕切りを何という？", a: ["細胞壁"], cat: "生物" },
+    { q: "自身の体温を周囲の温度に合わせて変化させる、爬虫類や魚類などの動物を何という？", a: ["変温動物"], cat: "生物" },
+    { q: "春の七草の一つ「ゴギョウ」としても知られ、全体が白い綿毛で覆われている植物は何？", a: ["ハハコグサ"], cat: "植物" },
+    { q: "マツやスギのように、胚珠がむき出しになっている植物を何という？", a: ["裸子植物"], cat: "植物" },
+    { q: "葉の裏側に多く存在し、蒸散や気体の出入りを行う小さな隙間を何という？", a: ["気孔"], cat: "植物" },
+    { q: "哺乳類でありながら卵を産むという珍しい特徴を持つ、オーストラリアに生息する動物は何？", a: ["カモノハシ"], cat: "生物" },
+    { q: "節足動物の体をおおっている、身を守るための硬い殻を何という？", a: ["外骨格"], cat: "生物" },
+    { q: "「森のバター」とも呼ばれる、非常に栄養価が高いクスノキ科の果実は何？", a: ["アボカド"], cat: "植物" },
+    { q: "アリやハチのように、集団の中で役割分担をして生活する昆虫を何という？", a: ["社会性昆虫"], cat: "生物" },
+    { q: "ジャガイモは茎が変化したものですが、サツマイモはどの部分が変化したもの？", a: ["根"], cat: "植物" },
+    { q: "根から吸収された水や養分が通る、植物の内部にある管を何という？", a: ["道管"], cat: "植物" },
+    { q: "北極圏に生息し、陸上最大の肉食獣ともいわれる白い毛に覆われたクマは何？", a: ["ホッキョクグマ", "シロクマ"], cat: "生物" },
+    { q: "砂漠などの乾燥地帯に適応し、葉や茎に水を蓄える性質を持つサボテンなどの植物を総称して何という？", a: ["多肉植物"], cat: "植物" },
+    { q: "「吾輩は猫である。名前はまだ無い。」という書き出しで始まる、夏目漱石の小説は何？", a: ["吾輩は猫である"], cat: "文学" },
+    { q: "代表作に『運命』『合唱』『月光』などがある、ドイツの作曲家は誰？", a: ["ベートーヴェン", "ルートヴィヒ・ヴァン・ベートーヴェン"], cat: "音楽" },
+    { q: "代表作に『白鳥の湖』『くるみ割り人形』『眠れる森の美女』がある、ロシアの作曲家は誰？", a: ["チャイコフスキー"], cat: "音楽" },
+    { q: "「春はあけぼの。やうやう白くなりゆく山ぎは」という書き出しで始まる、清少納言の随筆は何？", a: ["枕草子"], cat: "文学" },
+    { q: "代表作に『アイネ・クライネ・ナハトムジーク』や『トルコ行進曲』がある、オーストリアの作曲家は誰？", a: ["モーツァルト"], cat: "音楽" },
+    { q: "代表作に『G線上のアリア』や『主よ、人の望みの喜びよ』がある、「音楽の父」と称される作曲家は誰？", a: ["バッハ", "ヨハン・セバスティアン・バッハ"], cat: "音楽" },
+    { q: "「つれづれなるままに、日ぐらし、硯に向かひて」という書き出しで始まる、吉田兼好の随筆は何？", a: ["徒然草"], cat: "文学" },
+    { q: "代表作に『四季』より「春」や『調和の霊感』がある、イタリアの作曲家は誰？", a: ["ヴィヴァルディ"], cat: "音楽" },
+    { q: "「ゆく河の流れは絶えずして、しかももとの水にあらず。」という書き出しで始まる、鴨長明の随筆は何？", a: ["方丈記"], cat: "文学" },
+    { q: "代表作に『別れの曲』『革命のエチュード』『小犬のワルツ』がある、「ピアノの詩人」と称される作曲家は誰？", a: ["ショパン"], cat: "音楽" },
+    { q: "「道がつづら折りになって、いよいよ天城峠に近づいたと思う頃」という書き出しで始まる、川端康成の小説は何？", a: ["伊豆の踊子"], cat: "文学" },
+    { q: "代表作に『新世界より』や『アメリカ』がある、チェコの作曲家は誰？", a: ["ドヴォルザーク"], cat: "音楽" },
+    { q: "「ある日の暮方の事である。一人の下人が、羅生門の下で雨やみを待っていた。」という書き出しで始まる、芥川龍之介の小説は何？", a: ["羅生門"], cat: "文学" },
+    { q: "代表作に『木星』を含む組曲『惑星』がある、イギリスの作曲家は誰？", a: ["ホルスト"], cat: "音楽" },
+    { q: "代表作に『展覧会の絵』や交響詩『禿山の一夜』がある、ロシアの作曲家は誰？", a: ["ムソルグスキー"], cat: "音楽" },
+    { q: "「私は、その人を常に先生と呼んでいた。」という書き出しで始まる、夏目漱石の小説は何？", a: ["こころ"], cat: "文学" },
+    { q: "レオナルド・ダ・ヴィンチが描いた、口元に謎めいた微笑みを浮かべる女性の肖像画は何？", a: ["モナ・リザ"], cat: "絵画" },
+    { q: "水面に映る睡蓮の池を生涯にわたり描き続けた、フランス印象派の代表的画家は誰？", a: ["クロード・モネ", "モネ"], cat: "芸術" },
+    { q: "ヨハネス・フェルメールが描いた、ターバンを巻いた少女の顔が印象的な作品は何？", a: ["真珠の耳飾りの少女"], cat: "絵画" },
+    { q: "日本の伝統的な浮世絵を模した作品で世界的に評価される、かぼちゃのモチーフが有名な現代アーティストは誰？", a: ["草間彌生"], cat: "現代アート" },
+    { q: "「最後の晩餐」を描いたレオナルド・ダ・ヴィンチに対し、システィーナ礼拝堂の天井画で知られるイタリアルネサンスの巨匠は誰？", a: ["ミケランジェロ"], cat: "芸術" },
+    { q: "スペインの画家サルバドール・ダリの代表作で、溶けた時計が描かれていることで有名な作品は何？", a: ["記憶の固執"], cat: "絵画" },
+    { q: "「現代アートの破壊者」とも呼ばれ、バンクシーという匿名で活動するストリートアーティストはどこの国の出身とされる？", a: ["イギリス"], cat: "現代アート" },
+    { q: "フィンセント・ファン・ゴッホが描いた、夜空の渦と糸杉が印象的な作品は何？", a: ["星月夜"], cat: "絵画" },
+    { q: "エドヴァルド・ムンクが描いた、耳を塞いで叫ぶ人物が印象的な表現主義の代表作は何？", a: ["叫び"], cat: "絵画" },
+    { q: "「美術とは爆発だ！」というセリフでも知られる、太陽の塔などを制作した日本の芸術家は誰？", a: ["岡本太郎"], cat: "芸術" },
+    { q: "代表作に『白日』や『一途』、アニメ『呪術廻戦』の主題歌『SPECIALZ』がある、常田大希が率いるミクスチャーバンドは何？", a: ["King Gnu"], cat: "音楽" },
+    { q: "代表作に『Lemon』や『馬と鹿』、アニメ『チェンソーマン』の主題歌『KICK BACK』がある、ボカロP「ハチ」としても活動していたアーティストは誰？", a: ["米津玄師"], cat: "音楽" },
+    { q: "代表作に『Pretender』や『ミックスナッツ』、ドラマ『silent』の主題歌『Subtitle』がある、4人組ピアノPOPバンドは何？", a: ["Official髭男dism", "ヒゲダン"], cat: "音楽" },
+    { q: "「うっせぇわ」の社会現象的なヒットや、映画『ONE PIECE FILM RED』で歌姫・ウタの歌唱パートを担当した女性歌手は誰？", a: ["Ado"], cat: "音楽" },
+    { q: "代表作に『マリーゴールド』や『君はロックを聴かない』がある、兵庫県西宮市出身のシンガーソングライターは誰？", a: ["あいみょん"], cat: "音楽" },
+    { q: "「脳裏上のクラッカー」や「秒針を噛む」などのヒット曲がある、ACAねを中心とする音楽ユニットは何？", a: ["ずっと真夜中でいいのに。", "ずとまよ"], cat: "音楽" },
+    { q: "代表作に『前前前世』や『なんでもないや』など、映画『君の名は。』の劇伴すべてを手がけたロックバンドは何？", a: ["RADWIMPS"], cat: "音楽" },
+    { q: "代表作に『Automatic』や『First Love』などがあり、アニメ『新世紀エヴァンゲリオン』のテーマ曲なども手がけたアーティストは誰？", a: ["宇多田ヒカル"], cat: "音楽" },
+    { q: "「強風オールバック」のシュールなMVがネットミーム化し、爆発的なヒットを記録したボカロPは誰？", a: ["ゆこぴ"], cat: "ボカロ" },
+    { q: "代表作に『残酷な天使のテーゼ』や『魂のルフラン』がある、アニメ『新世紀エヴァンゲリオン』を象徴する歌手は誰？", a: ["高橋洋子"], cat: "音楽" },
+    { q: "1940年代、ロスアラモス研究所で事故を起こし2人の科学者の命を奪った、プルトニウムの塊の通称は何？", a: ["デーモン・コア", "デーモンコア"], cat: "科学" },
+    { q: "一般名を「アセトアミノフェン」という、解熱鎮痛剤として広く処方されている処方薬の商品名は何？", a: ["カロナール"], cat: "医学" },
+    { q: "カンブリア紀の海に生息していた、頭部にある一対の触手とパイナップルの輪切りのような口が特徴の古生物は何？", a: ["アノマロカリス"], cat: "古生物" },
+    { q: "オスマン帝国の最盛期を築き、ヨーロッパでは「壮麗帝」とも呼ばれた第10代皇帝は誰？", a: ["スレイマン1世", "スレイマン大帝"], cat: "世界史" },
+    { q: "16世紀にアメリカ大陸へ渡り、アステカ帝国やインカ帝国を征服したスペインの探検家たちを何という？", a: ["コンキスタドール"], cat: "世界史" },
+    { q: "イタリアを代表する青カビチーズで、刺激の強い「ピカンテ」とマイルドな「ドルチェ」の2種類があるのは何？", a: ["ゴルゴンゾーラ"], cat: "料理" },
+    { q: "東経135度を通り、日本の時刻の基準となっている経線のことを何という？", a: ["日本標準時子午線"], cat: "地理" },
+    { q: "1962年、ソ連がミサイル基地を建設したことで核戦争寸前の緊張状態に陥った政治危機を何という？", a: ["キューバ危機"], cat: "世界史" },
+    { q: "野菜の切り方で、厚さ1〜2mm、幅1cm、長さ4〜5cm程度の長方形に切る方法を何という？", a: ["短冊切り"], cat: "料理" },
+    { q: "赤城乳業が販売している、アイスキャンディーの中にカキ氷を入れたロングセラー商品は何？", a: ["ガリガリ君"], cat: "商品" },
+    { q: "ネコ科の動物がこの植物の成分「マタタビラクトン」に反応して陶酔状態になることで知られる植物は何？", a: ["マタタビ"], cat: "生物" },
+    { q: "映画『となりのトトロ』に登場する、12本の足を動かして走り、目がライトになっている生き物は何？", a: ["ネコバス"], cat: "アニメ" },
+    { q: "1077年、聖職叙任権を巡って対立した皇帝ハインリヒ4世が、教皇グレゴリウス7世に謝罪した事件を何という？", a: ["カノッサの屈辱"], cat: "世界史" },
+    { q: "1964年の東京オリンピックで金メダルを獲得した、全日本女子バレーボールチームの呼び名は何？", a: ["東洋の魔女"], cat: "スポーツ" },
+    { q: "1582年、羽柴秀吉が「水攻め」を行ったことで知られる、現在の岡山県にある城は何？", a: ["備中高松城"], cat: "日本史" },
+    { q: "鉄を触媒として、窒素と水素からアンモニアを直接合成する工業的製法を何という？", a: ["ハーバー・ボッシュ法"], cat: "化学" },
+    { q: "指定された数以下の素数を、倍数を順番に消していくことで効率よく見つけるアルゴリズムを「何の篩」という？", a: ["エラトステネスの篩", "エラトステネスのふるい"], cat: "数学" },
+    { q: "三筆の一人に数えられ、薬子の変の鎮圧や、日本初の勅撰漢詩集『凌雲集』を編纂させた平安時代の天皇は誰？", a: ["嵯峨天皇"], cat: "日本史" },
+    { q: "古代日本で行われた、熱湯の中に手を入れて火傷の有無で正邪を判断する神判儀式を何という？", a: ["盟神探湯", "くかたち"], cat: "日本史" },
+    { q: "ハワイ料理の一種で、ご飯の上にハンバーグと目玉焼きを乗せ、グレービーソースをかけたものは何？", a: ["ロコモコ"], cat: "料理" },
+    { q: "モンゴルの伝統的な歌唱法で、一人の人間が同時に二つの音を出す独特の声を何という？", a: ["ホーミー"], cat: "文化" },
+    { q: "太古の生物の死骸が堆積してできたとされる、別名を「黒い黄金」とも呼ぶ液体燃料は何？", a: ["石油"], cat: "地学" },
+    { q: "光の三原色は赤、青、緑ですが、色料の三原色はシアン、マゼンタとあと一つは何？", a: ["イエロー", "黄"], cat: "芸術" },
+    { q: "4桁の素数のうち、最も大きい数字は何？", a: ["9973"], cat: "数学" },
+    { q: "陸上競技の投てき種目で、鉄球を肩から押し出すようにしてその距離を競うのは何？", a: ["砲丸投げ"], cat: "スポーツ" },
+    { q: "兵庫県西宮市にあり、毎年高校野球の全国大会が開催される球場の通称は何？", a: ["甲子園"], cat: "スポーツ" },
+    { q: "選挙において、当選者の決定に結びつかなかった候補者に投じられた票のことを何という？", a: ["死票"], cat: "社会" },
+    { q: "トリドールホールディングスが展開する、店内に製麺機を置いて打ち立てを提供しているうどんチェーンは何？", a: ["丸亀製麺"], cat: "企業" },
+    { q: "11世紀にアノヤターが建国し、ビルマ（ミャンマー）最初の統一王朝となったのは何？", a: ["パガン朝"], cat: "世界史" },
+    { q: "地中海最大の島で、州都をパレルモに置き、映画『ゴッドファーザー』の舞台としても知られるのはどこ？", a: ["シチリア島"], cat: "地理" },
+    { q: "1960年に池田勇人内閣が発表した、10年間で国民総生産を2倍にすることを目指した経済政策は何？", a: ["所得倍増計画"], cat: "日本史" },
+    { q: "地震の予兆として暴れるという俗信があり、安政江戸地震の際にも浮世絵の題材となった魚は何？", a: ["ナマズ", "なまず"], cat: "雑学" },
+    { q: "以前は「劣性」と呼ばれていた、対立形質を持つ個体を交配した際に子に現れにくい方の形質を何という？", a: ["潜性", "潜性形質"], cat: "理科" },
+    { q: "イギリスの首都であり、テムズ川の河畔にビッグ・ベンやタワーブリッジがある都市はどこ？", a: ["ロンドン"], cat: "地理" },
+    { q: "臆病な少年・豆太と、勇気がある者だけが見ることができる光る木を描いた、斎藤隆介の絵本は何？", a: ["モチモチの木"], cat: "文学" },
+    { q: "日本の公職選挙法において、選挙権を持つことができるのは満何歳以上？", a: ["18歳", "18"], cat: "社会" },
+    { q: "2022年W杯でアルゼンチンを優勝に導き、史上最多のバロンドール受賞回数を誇るサッカー選手は誰？", a: ["メッシ", "リオネル・メッシ"], cat: "スポーツ" },
+    { q: "図鑑番号149番で、ハクリューが進化し、大きな体で海を飛び越えて移動する「ドラゴンポケモン」は何？", a: ["カイリュー"], cat: "ゲーム" },
+    { q: "自分からは攻撃せず「カウンター」や「ミラーコート」で相手の技を返す、常に我慢している「がまんポケモン」は何？", a: ["ソーナンス"], cat: "ゲーム" },
+    { q: "オーストリアのホテル・ザッハーの名物である、アプリコットジャムを挟んだ濃厚なチョコケーキは何？", a: ["ザッハトルテ"], cat: "料理" },
+    { q: "1993年、日本サッカー代表がイラクとの試合終了直前に失点し、W杯初出場を逃した出来事は何？", a: ["ドーハの悲劇"], cat: "スポーツ" },
+    { q: "赤い顔と長い鼻を持ち、高い下駄を履いて空を飛ぶと言われる、日本の山に住む伝説上の生き物は何？", a: ["天狗", "てんぐ"], cat: "文化" },
+    { q: "貝殻を背負って移動し、成長に合わせてより大きな殻へ住み替える習性を持つ甲殻類は何？", a: ["ヤドカリ"], cat: "生物" },
+    { q: "スペイン語で「第6時」を意味する、昼食後の長い休憩や昼寝をする習慣を何という？", a: ["シエスタ"], cat: "文化" },
+    { q: "数字が棒のように並ぶことから、日本では「ポッキー＆プリッツの日」として制定されている日付はいつ？", a: ["11月11日"], cat: "雑学" },
+    { q: "月が太陽を完全には覆い隠せず、太陽の縁がリング状に輝いて見える日食を何という？", a: ["金環日食"], cat: "地学" },
+    { q: "魔王を倒した後の世界を舞台に、長命なエルフの魔法使いがかつての仲間との旅を振り返る物語は何？", a: ["葬送のフリーレン"], cat: "アニメ" },
+    { q: "「いろは歌」のように、ある言語の全ての文字を少なくとも一度は使って作られた文章を何という？", a: ["パングラム"], cat: "国語" },
+    { q: "クイズ番組への出演も多く、常に全身真っ赤な衣装を着用しているメイプル超合金のメンバーは誰？", a: ["カズレーザー"], cat: "芸能" },
+    { q: "元々はDVDのレンタルから始まり、現在は『愛の不時着』などの独占配信で知られる世界最大級の動画配信サービスは何？", a: ["Netflix", "ネットフリックス"], cat: "企業" },
+    { q: "セガを代表するキャラクターで、音速で走ることができる青いハリネズミの名前は何？", a: ["ソニック", "ソニック・ザ・ヘッジホッグ"], cat: "ゲーム" },
+    { q: "ポケモンにおいて、ヒトカゲ、ガーディ、ポニータなどが共通して持っているタイプは何？", a: ["ほのおタイプ", "ほのお"], cat: "ゲーム" },
+    { q: "「すべての道はローマに通ず」の由来の一つとなった、古代ローマで建設された最も古い軍用道路は何？", a: ["アッピア街道"], cat: "世界史" },
+    { q: "東洋水産（マルちゃん）が販売している、小えび天ぷらが入った人気のカップそばの商品名は何？", a: ["緑のたぬき"], cat: "商品" },
+    { q: "その血を飲めば不老不死になれるという伝説を軸に、過去と未来を往来する手塚治虫のライフワーク的漫画は何？", a: ["火の鳥"], cat: "漫画" },
+    { q: "フランス料理の基本となるブラウンソースを煮詰め、フォンドボーなどを加えて作る濃厚な茶色のソースは何？", a: ["デミグラスソース", "デミグラス"], cat: "料理" },
+    { q: "元素記号「Pt」で表され、宝飾品や自動車の排気ガス浄化触媒として使われる高価な貴金属は何？", a: ["白金", "プラチナ"], cat: "化学" },
+    { q: "1980年にWHOが根絶を宣言した、人類が克服した唯一の感染症とされる、かつて猛威を振るった病気は何？", a: ["天然痘"], cat: "医学" },
+    { q: "日本国憲法において「すべて国民は、健康で文化的な最低限度の生活を営む権利を有する」と規定されているのは第何条？", a: ["25条", "第25条"], cat: "法律" },
+    { q: "5月5日の端午の節句に、子供の健やかな成長を願って庭先に飾る魚の形をしたのぼりは何？", a: ["こいのぼり"], cat: "文化" },
+    { q: "島根県隠岐の島町に属しているが、現在は韓国が実効支配しており領有権の問題となっている日本固有の領土はどこ？", a: ["竹島"], cat: "地理" },
+    { q: "漢字では「海栗」や「海胆」と書き、トゲだらけの外見と濃厚な精巣・卵巣が食用として人気の海洋生物は何？", a: ["ウニ"], cat: "生物" },
+    { q: "フランス語で「キャベツ」を意味し、生地の中にカスタードや生クリームを詰めたお菓子を何という？", a: ["シュークリーム"], cat: "料理" },
+    { q: "大根おろしに唐辛子を混ぜて赤く色付けした、鍋料理の薬味などに使われるものは何？", a: ["もみじおろし"], cat: "料理" },
+    { q: "Apple製品同士で、Wi-FiやBluetoothを使って写真や書類を素早くワイヤレス送信できる機能は何？", a: ["AirDrop", "エアドロップ"], cat: "IT" },
+    { q: "ロッテが販売している、アイスを柔らかいお餅で包んだロングセラーの商品名は何？", a: ["雪見だいふく"], cat: "商品" },
+    { q: "オルニチンを多く含み、肝臓に良いとされる、味噌汁の具としても定番の小さな二枚貝は何？", a: ["しじみ", "シジミ"], cat: "生物" },
+    { q: "自然界で最強といわれる毒素を産出し、真空パック食品などで増殖する食中毒の原因菌は何？", a: ["ボツリヌス菌"], cat: "医学" },
+    { q: "フグの卵巣や肝臓に含まれている、非常に毒性が強い神経毒の名前は何？", a: ["テトロドトキシン"], cat: "医学" },
+    { q: "ケッペンの気候区分で、最寒月平均気温がマイナス3度未満、最暖月が10度以上の、ロシアやカナダに広がる気候帯は何？", a: ["冷帯", "亜寒帯"], cat: "地理" },
+    { q: "藤本タツキによる漫画で、悪魔の心臓を持つ少年・デンジがデビルハンターとして戦う物語は何？", a: ["チェンソーマン"], cat: "漫画" },
+    { q: "無人島での生活を楽しみながら、どうぶつの住民と交流する、2020年に大ヒットしたNintendo Switchのゲームは何？", a: ["あつまれどうぶつの森", "あつ森"], cat: "ゲーム" },
+    { q: "19世紀後半にコンゴを私有地化し、過酷な搾取を行ったことで批判を受けたベルギーの国王は誰？", a: ["レオポルド2世"], cat: "世界史" },
+    { q: "古代インドの公用語で、仏教の経典などにも使われ、日本語の「梵語（ぼんご）」にあたる言語は何？", a: ["サンスクリット語"], cat: "文化" },
+    { q: "緯度が0度であり、地球を北半球と南半球に分ける境界線を何という？", a: ["赤道"], cat: "地理" },
+    { q: "アメリカ発祥の会員制倉庫型店で、大容量の食品や日用品を低価格で販売しているチェーンは何？", a: ["コストコ"], cat: "企業" },
+    { q: "『ポテトチップス』や『じゃがりこ』などのヒット商品を持つ、日本の大手スナック菓子メーカーは何？", a: ["カルビー"], cat: "企業" },
+    { q: "約4万年前にヨーロッパに出現した、現代の人間（ホモ・サピエンス）の直接の祖先とされる新人（しんじん）は何？", a: ["クロマニョン人"], cat: "世界史" },
+    { q: "白亜紀後期に生息していた、頭部にある3本の角と大きな襟飾りが特徴の草食恐竜は何？", a: ["トリケラトプス"], cat: "古生物" },
+    { q: "特定の色の背景（主に緑）を透明にして、別の映像を合成する映像技術を「何合成」という？", a: ["クロマキー", "クロマキー合成"], cat: "IT" },
+    { q: "氷河によって削られたU字型の谷に海水が入り込んでできた、ノルウェーなどに多く見られる複雑な入り江は何？", a: ["フィヨルド"], cat: "地理" },
+    { q: "「バーチャルYouTuber」の略称で、アバターを使って動画配信やライブ活動を行う存在を何という？", a: ["Vtuber", "ブイチューバー"], cat: "IT" },
+    { q: "2025年開催の大阪・関西万博の公式キャラクターで、赤い細胞と青い水が合体したような姿をしているのは誰？", a: ["ミャクミャク"], cat: "雑学" },
+    { q: "太陽の表面に見られる巨大な炎のようなガスの噴出を、英語で何という？", a: ["プロミネンス", "紅炎"], cat: "地学" },
+    { q: "四方を敵に囲まれ、助けがない孤立無援の状態を、項羽が敵軍から故郷の歌を聞いた故事から何という？", a: ["四面楚歌"], cat: "国語" },
+    { q: "和歌の技法で、有名な古歌のフレーズをあえて取り入れ、新しい歌に奥行きを持たせる方法を何という？", a: ["本歌取り"], cat: "古典" },
+    { q: "冬から春に咲くラッパのような形の黄色や白の花で、ギリシャ神話のナルキッソスの伝説で知られるのは何？", a: ["スイセン", "水仙"], cat: "生物" },
+    { q: "ひたち海浜公園の丘を青く染める光景が有名な、和名を「瑠璃唐草（るりからくさ）」という花は何？", a: ["ネモフィラ"], cat: "生物" },
+    { q: "各句の頭文字を繋げると別の意味の言葉が現れる、「伊勢物語」の『かきつばた』の歌などが有名な技法は何？", a: ["折句", "おりく"], cat: "古典" },
+    { q: "「いずれ菖蒲（あやめ）か何」という言葉があるように、アヤメと見分けがつきにくいアヤメ科の植物は何？", a: ["かきつばた", "杜若"], cat: "生物" },
+    { q: "シェヘラザードが王に語った『アリババと40人の盗賊』などの物語を収めた説話集は何？", a: ["アラビアンナイト", "千夜一夜物語"], cat: "文学" },
+    { q: "代表作に『何なんw』や『死ぬのがいいわ』があり、岡山県出身の独特な感性を持つシンガーソングライターは誰？", a: ["藤井風"], cat: "音楽" },
+    { q: "アイルランドの作家ブラム・ストーカーの小説に登場する、吸血鬼の代名詞的存在といえば誰？", a: ["ドラキュラ"], cat: "文学" },
+    { q: "カカクコムが運営する、ユーザーの口コミと点数で飲食店を検索・予約できる国内最大級のグルメサイトは何？", a: ["食べログ"], cat: "IT" },
+    { q: "熱帯や亜熱帯で、欧米の資本と現地の安価な労働力を用いて単一の作物を大量生産する大農園を何という？", a: ["プランテーション"], cat: "地理" },
+    { q: "毎年1月2日と3日に開催される、東京から往路・復路を駆け抜ける東京箱根間往復大学駅伝競走の通称は何？", a: ["箱根駅伝"], cat: "スポーツ" },
+    { q: "主人公のリンクが、ハイラル王国を救うために冒険を繰り広げる任天堂の人気アクションアドベンチャーは何？", a: ["ゼルダの伝説"], cat: "ゲーム" },
+    { q: "2人乗りまたは4人乗りがあり、鋼鉄製のそりで氷のコースを滑り降りる「氷上のF1」とも呼ばれる競技は何？", a: ["ボブスレー"], cat: "スポーツ" },
+    { q: "フランス語で「そり」を意味し、仰向けの姿勢で足から先に滑り降りる冬季五輪競技は何？", a: ["リュージュ"], cat: "スポーツ" },
+    { q: "うつ伏せの状態で頭から先にそりに乗って滑走する、恐怖心との戦いとも言われる冬季五輪競技は何？", a: ["スケルトン"], cat: "スポーツ" },
+    { q: "「水中のハンドボール」とも呼ばれ、水深2メートル以上のプールで行われる球技は何？", a: ["水球"], cat: "スポーツ" },
+    { q: "東京五輪から正式種目となり、堀米雄斗が金メダルを獲得した、板に乗ってトリックを競う競技は何？", a: ["スケートボード", "スケボー"], cat: "スポーツ" },
+    { q: "漢字をその意味に関係なく、日本語の音を表記するために用いた、記紀万葉時代に使われた文字は何？", a: ["万葉仮名"], cat: "古典" },
+    { q: "寿司屋で出される「生姜の甘酢漬け」のことを、噛んだ時の音から何という？", a: ["ガリ"], cat: "料理" },
+    { q: "卵白と砂糖とアーモンドパウダーを焼き上げ、クリームを挟んだフランスを代表するカラフルな焼き菓子は何？", a: ["マカロン"], cat: "料理" },
+    { q: "せいやと粗品の二人からなる、2018年にM-1グランプリで優勝したお笑いコンビは何？", a: ["霜降り明星"], cat: "芸能" },
+    { q: "地球から見て太陽、月に次いで明るく見える惑星で、明け方に見えるものを「明けの明星」と呼ぶのは何？", a: ["金星"], cat: "天文" },
+    { q: "ゲーム『マインクラフト』における「ジ・エンド」に生息する、実質的なラスボスとされるモンスターは何？", a: ["エンダードラゴン"], cat: "ゲーム" },
+    { q: "首都をウランバートルに置き、かつてチンギス・ハンが巨大な帝国を築いた東アジアの国はどこ？", a: ["モンゴル"], cat: "地理" },
+    { q: "シドニーやメルボルンではなく、オーストラリアの首都として機能している都市はどこ？", a: ["キャンベラ"], cat: "地理" },
+    { q: "人狼ゲームの役職で、追放されたり襲撃されたりしたプレイヤーが「人狼」だったか「人間」だったかを知ることができるのは何？", a: ["霊媒師"], cat: "ゲーム" },
+    { q: "人狼ゲームの役職で、毎晩一人を指定して人狼の襲撃から守ることができる（ただし自分自身は守れないことが多い）のは何？", a: ["狩人", "騎士"], cat: "ゲーム" },
+    { q: "いくつかの質問に答えるだけで、プレイヤーが思い浮かべている実在または架空の人物を言い当てるプログラムやサイトの名前は何？", a: ["アキネーター", "Akinator"], cat: "IT" },
+    { q: "ByteDance社が運営する、短い動画を投稿・視聴できる世界的に人気のSNSプラットフォームは何？", a: ["TikTok", "ティックトック"], cat: "IT" },
+    { q: "サッカーの試合で、主審の判定を補助するためにビデオ映像を用いて確認を行うシステムをアルファベット3文字で何という？", a: ["VAR"], cat: "スポーツ" },
+    { q: "19世紀後半のフランスに始まり、光の動きや色の変化を捉えようとしたモネやルノワールに代表される芸術様式は何？", a: ["印象派"], cat: "芸術" },
+    { q: "中国史上唯一の正統な女帝として「周」を建て、科挙を整備するなど権勢を振るった唐時代の人物は誰？", a: ["則天武后", "武則天"], cat: "世界史" },
+    { q: "様々な組織に分化する能力を持つ「iPS細胞」の作製に成功し、2012年にノーベル生理学・医学賞を受賞した日本の医学者は誰？", a: ["山中伸弥"], cat: "医学" },
+    { q: "パスタの一種で、円筒形で両端がペン先のように斜めにカットされており、表面に溝があるものを何という？", a: ["ペンネ"], cat: "料理" },
+    { q: "イタリア語で「小さなリボン」を意味する、きしめんのように平たい形状をしたパスタを何という？", a: ["フェットチーネ"], cat: "料理" },
+    { q: "「黒いダイヤ」とも呼ばれ、独特の強い香りを持つ、キノコの一種である世界三大珍味の一つは何？", a: ["トリュフ", "セイヨウショウロ"], cat: "食品" },
+    { q: "成長するにつれてワカシ、イナダ、ワラサと呼び名が変わる、冬に旬を迎える出世魚は何？", a: ["ブリ", "鰤"], cat: "生物" },
+    { q: "おせち料理の一種で、クチナシで黄色く染めたサツマイモの餡に、栗を混ぜた甘い料理は何？", a: ["栗きんとん"], cat: "料理" },
+    { q: "卵焼きに魚のすり身を混ぜて焼き、巻き簾で巻いて形を整えた、おせち料理に欠かせない一品は何？", a: ["伊達巻"], cat: "料理" },
+    { q: "オーストラリア北東部の海岸に広がる、世界最大級のサンゴ礁地帯を何という？", a: ["グレートバリアリーフ"], cat: "地理" },
+    { q: "オランダの絵本作家ディック・ブルーナが描いた、×印の口が特徴的なうさぎの女の子の名前は何？", a: ["ミッフィー", "うさこちゃん"], cat: "キャラクター" },
+    { q: "大阪市此花区にあり、マリオやハリー・ポッターなどのエリアが人気のテーマパークは何？", a: ["ユニバーサル・スタジオ・ジャパン", "USJ"], cat: "レジャー" },
+    { q: "ボカロPの「いよわ」が発表した、浮遊感のあるメロディと切ない歌詞がSNSで話題となった楽曲は何？", a: ["きゅうくらりん"], cat: "音楽" },
+    { q: "地球の最も南に位置し、どこの国にも属さず、ペンギンなどが生息する氷に覆われた大陸を何という？", a: ["南極", "南極大陸"], cat: "地理" },
+    { q: "揚げた鶏肉を甘酢に浸し、タルタルソースをかけて食べる、宮崎県発祥の料理は何？", a: ["チキン南蛮"], cat: "料理" },
+    { q: "ご飯に具材を乗せ、熱いお茶や出汁をかけて食べる、日本の簡便な料理を何という？", a: ["お茶漬け"], cat: "料理" },
+    { q: "太宰治の小説『走れメロス』で、メロスが刑場に戻ってくるのを信じて待ち続けた親友の名前は何？", a: ["セリヌンティウス"], cat: "文学" },
+    { q: "体重(kg)を身長(m)の2乗で割って算出する、肥満度を判定するための国際的な指標を何という？", a: ["BMI", "ボディマス指数"], cat: "医学" },
+    { q: "「コバン」「ホオジロ」「ジンベエ」に共通して後ろに付く生き物の名前は何？", a: ["サメ", "ザメ"], cat: "生物" },
+    { q: "大塚製薬が販売する、「ビタミンハツラツ！」のキャッチコピーで知られる炭酸飲料は何？", a: ["オロナミンC"], cat: "商品" },
+    { q: "かつては貴重なタンパク源として佃煮などで食べられ、群生して農作物を食い荒らすこともある昆虫は何？", a: ["イナゴ", "いなご"], cat: "生物" },
+    { q: "漢字で「魚」に「弱」と書き、群れで泳ぐ姿が特徴的な、日本の食卓に欠かせない青魚は何？", a: ["イワシ", "いわし"], cat: "生物" },
+    { q: "地球の公転周期とのズレを調整するため、通常より1日多い366日となる年を何という？", a: ["うるう年", "閏年"], cat: "雑学" },
+    { q: "アーサー・コナン・ドイルの小説に登場する、ロンドンのベーカー街221Bに住む名探偵は誰？", a: ["シャーロック・ホームズ"], cat: "文学" },
+    { q: "毎年8月に青森市で開催される、巨大な武者人形の灯籠を引いて街を練り歩く祭りは何？", a: ["ねぶた祭", "ねぶた"], cat: "文化" },
+    { q: "2020年東京五輪のメイン会場として使用された、隈研吾らが設計した新宿区にある競技場は何？", a: ["国立競技場"], cat: "スポーツ" },
+    { q: "「低地の国」という意味の名を持ち、風車やチューリップ、木靴などが有名なヨーロッパの国はどこ？", a: ["オランダ"], cat: "地理" },
+    { q: "2011年の「ゆるキャラグランプリ」で王者となり、熊本県の営業部長も務める人気キャラクターは誰？", a: ["くまモン"], cat: "キャラクター" },
+    { q: "「わけあって、安い。」というキャッチコピーで誕生した、衣服、生活雑貨、食品などを扱うブランドは何？", a: ["無印良品"], cat: "企業" },
+    { q: "サーティワンアイスクリームで不動の人気を誇る、口の中でパチパチ弾けるキャンディが入ったフレーバーは何？", a: ["ポッピングシャワー"], cat: "食品" },
+    { q: "ミスタードーナツの定番商品で、サクサクとした食感と素朴な甘さが特徴のドーナツは何？", a: ["オールドファッション"], cat: "食品" },
+    { q: "ミスタードーナツの看板商品で、もちもちとした食感と8つの丸が繋がった形が特徴のドーナツは何？", a: ["ポン・デ・リング"], cat: "食品" },
+    { q: "「海の恩恵に感謝し、海洋国日本の繁栄を願う」という趣旨で、7月の第3月曜日に定められた祝日は何？", a: ["海の日"], cat: "社会" },
+    { q: "2月14日に、世界各地でカップルの愛の誓いの日とされるイベントは何？", a: ["バレンタインデー", "バレンタイン"], cat: "文化" },
+    { q: "メジャーリーグで日本人初のシーズンMVPを獲得し、日米通算4367安打を記録した伝説の打者は誰？", a: ["イチロー"], cat: "スポーツ" },
+    { q: "2021年東京五輪の卓球混合ダブルスで、伊藤美誠とともに金メダルを獲得した男子選手は誰？", a: ["水谷隼"], cat: "スポーツ" },
+    { q: "将棋界で史上初の「永世七冠」を達成し、現在は日本将棋連盟の会長を務めている棋士は誰？", a: ["羽生善治"], cat: "将棋" },
+    { q: "相葉雅紀、松本潤、二宮和也、大野智、櫻井翔の5人からなる、2020年に活動を休止した国民的グループは何？", a: ["嵐", "ARASHI"], cat: "芸能" },
+    { q: "2022年北京五輪の女子フィギュアスケートで銅メダルを獲得し、力強いジャンプが持ち味の選手は誰？", a: ["坂本花織"], cat: "スポーツ" },
+    { q: "「霊長類最強の女」の異名を持ち、五輪3連覇、世界大会16連覇を成し遂げたレスリング選手は誰？", a: ["吉田沙保里"], cat: "スポーツ" },
+    { q: "北条義時を主人公に、鎌倉幕府誕生の権力闘争を描いた2022年放送のNHK大河ドラマは何？", a: ["鎌倉殿の13人"], cat: "芸能" },
+    { q: "2008年に公開されたスタジオジブリの映画で、5歳の少年・宗介と魚の女の子の交流を描いた作品は『何上のポニョ』？", a: ["崖の上のポニョ"], cat: "アニメ" },
+    { q: "第二次世界大戦後、東西ドイツの分断の象徴となり、1989年に崩壊したコンクリート製の障壁を何という？", a: ["ベルリンの壁"], cat: "世界史" },
+    { q: "1964年の東京オリンピックで初めて本格的に導入された、情報と言葉を視覚記号で表現した図記号を何という？", a: ["ピクトグラム"], cat: "デザイン" },
+    { q: "山岡士郎と栗田ゆう子を主人公に、究極のメニュー作りを描いた、雁屋哲・花咲アキラによる人気グルメ漫画は何？", a: ["美味しんぼ"], cat: "漫画" },
+    { q: "沖縄料理の「ゴーヤチャンプルー」に欠かせない、和名を「ニガウリ」というウリ科の野菜は何？", a: ["ゴーヤ", "ゴーヤー", "ニガウリ"], cat: "料理" },
+    { q: "自分の顔や姿を無断で撮影されたり、公表されたりしないように主張できる権利を何という？", a: ["肖像権"], cat: "法律" },
+    { q: "原子番号118番で、現在周期表の最後に位置している、ロシアの物理学者の名にちなんだ元素は何？", a: ["オガネソン"], cat: "科学" },
+    { q: "コンピュータプログラムに含まれる誤りや欠陥のことを、英語で「虫」を意味する言葉で何という？", a: ["バグ"], cat: "IT" },
+    { q: "A型、B型、C型などの種類がある、高熱や関節痛を伴う流行性の感染症は何？", a: ["インフルエンザ", "流行性感冒"], cat: "医学" },
+    { q: "ジンバブエとザンビアの国境に位置する、世界三大瀑布の一つに数えられる巨大な滝は何？", a: ["ヴィクトリアの滝", "ビクトリアの滝"], cat: "地理" },
+    { q: "長崎県にある現存する日本最古のキリスト教建築物で、国宝に指定されている聖堂は何？", a: ["大浦天主堂"], cat: "日本史" },
+    { q: "山崎製パンが販売している、耳のない食パンに具材を挟んで四方を圧着した人気のパンシリーズは何？", a: ["ランチパック"], cat: "商品" },
+    { q: "中国の歴代王朝が北方民族の侵入を防ぐために建設した、世界最長の防衛施設跡は何？", a: ["万里の長城"], cat: "世界史" },
+    { q: "紙を食べるという童謡でもおなじみの、切り立った崖なども器用に登る反芻（はんすう）動物は何？", a: ["ヤギ", "山羊"], cat: "生物" },
+    { q: "世界最小のパスタとも呼ばれる、硬質小麦の粉に水を加えて粒状にした北アフリカ発祥の料理は何？", a: ["クスクス"], cat: "料理" },
+    { q: "丸鶏の中にもち米や高麗人参などを詰めて煮込んだ、韓国の代表的な薬膳料理は何？", a: ["サムゲタン", "参鶏湯"], cat: "料理" },
+    { q: "嘉納治五郎が創始し、「一本」や「技あり」などの判定で競う、日本の国技とも称される武道は何？", a: ["柔道"], cat: "スポーツ" },
+    { q: "血液中にも含まれ、脳や体のエネルギー源として重要な役割を果たす、代表的な単糖類は何？", a: ["ブドウ糖", "グルコース"], cat: "科学" },
+    { q: "「翼をさずける」というキャッチコピーで有名な、オーストリア発の世界的エナジードリンクは何？", a: ["レッドブル"], cat: "商品" },
+    { q: "清（しん）の第4代皇帝で、在位期間が61年と中国史上最長であり、帝国を全盛期へと導いた人物は誰？", a: ["康煕帝", "こうきてい"], cat: "世界史" },
+    { q: "エチゼンクラゲやミズクラゲなど、体の大半が水分でできており、触手の毒で獲物を捕らえる海洋生物の総称は何？", a: ["クラゲ", "海月", "水母"], cat: "生物" },
+    { q: "江戸時代、長崎貿易において銅の代わりに対清輸出の主力となった、乾燥させたナマコ、アワビ、フカヒレなどを何という？", a: ["俵物", "たわらもの"], cat: "日本史" },
+    { q: "室町時代に足利義満が始め、偽の船を区別するために「割り印」を用いた明（みん）との貿易を何という？", a: ["勘合貿易", "日明貿易"], cat: "日本史" },
+    { q: "バインダーに綴じるための穴が開いており、必要に応じてページの抜き差しができるノート用紙を何という？", a: ["ルーズリーフ"], cat: "生活" },
+    { q: "直火焼きのパティを使った「ワッパー」という大型ハンバーガーが看板商品の、アメリカ発のチェーン店は何？", a: ["バーガーキング"], cat: "企業" },
+    { q: "1996年に発売され、『スーパーマリオ64』や『ゼルダの伝説 時のオカリナ』などの名作を生んだ任天堂のゲーム機は何？", a: ["ニンテンドー64", "N64"], cat: "ゲーム" },
+    { q: "豆乳に凝固剤を加えて固めた後、重石をして水分を抜き、布目の跡がついているのが特徴の豆腐は何？", a: ["木綿豆腐"], cat: "料理" },
+    { q: "1、4、9、16のように、ある整数を2乗して得られる数のことを何という？", a: ["平方数", "完全平方数"], cat: "数学" },
+    { q: "液体の表面が、できるだけ面積を小さくしようとして縮まろうとする力を何という？", a: ["表面張力"], cat: "科学" },
+    { q: "数学の証明法で、ある命題が偽であると仮定して矛盾を導き、元の命題が真であることを証明する方法を何という？", a: ["背理法"], cat: "数学" },
+    { q: "1889年の大日本帝国憲法下において、衆議院とともに帝国議会を構成した、皇族や華族などで組織された議院は何？", a: ["貴族院"], cat: "日本史" },
+    { q: "縄文時代に作られた、魔除けや安産を祈るためのものと考えられている素焼きの人形を何という？", a: ["土偶"], cat: "日本史" },
+    { q: "先端を熱して、スズを主成分とする合金を溶かし、電子部品などを接合するために使う道具は何？", a: ["はんだごて", "半田ごて"], cat: "技術" },
+    { q: "「教育テレビ」の愛称で親しまれている、NHKの第2放送チャンネルの現在の名称は何？", a: ["Eテレ", "NHK Eテレ"], cat: "テレビ" },
+    { q: "気象庁の予報用語で、一日の最高気温が摂氏35度以上になる日のことを何という？", a: ["猛暑日"], cat: "気象" },
+    { q: "レオ・レオニの絵本に登場する、仲間が大きな魚に食べられる中、一匹だけ生き残った賢い黒い魚の名前は何？", a: ["スイミー"], cat: "文学" },
+    { q: "南米原産のナス科の植物で、イタリア料理に欠かせず、和名を「赤茄子（あかなす）」という野菜は何？", a: ["トマト"], cat: "食品" },
+    { q: "ペルシャ原産で、ポパイの好物としても知られる、鉄分やビタミンが豊富なヒユ科の野菜は何？", a: ["ほうれん草", "ホウレンソウ"], cat: "食品" },
+    { q: "小麦粉を焼いた生地で餡を包み、塩漬けした桜の葉で巻いた、春の代表的な和菓子は何？", a: ["桜餅"], cat: "料理" },
+    { q: "ギリシャ神話で難攻不落の城を攻略するために使われた装置に由来する、有益なソフトを装って侵入するウイルスは何？", a: ["トロイの木馬"], cat: "IT" },
+    { q: "グイド・ヴァン・ロッサムによって開発され、AIの開発やデータ分析によく使われる、読みやすさが特徴の言語は何？", a: ["Python", "パイソン"], cat: "IT" },
+    { q: "リンパ球の一種で、ウイルスに感染した細胞やがん細胞を、事前の教育なしに直接攻撃する細胞は何？", a: ["ナチュラルキラー細胞", "NK細胞"], cat: "生物" },
+    { q: "すい臓のランゲルハンス島から分泌され、血糖値を下げる働きを持つホルモンは何？", a: ["インスリン"], cat: "医学" },
+  { q: "太陽系で「赤」く見えることから火徳星とも呼ばれ、英語では戦神の名を冠する惑星は何？", a: ["火星"], cat: "天文" },
+ { q: "ツール・ド・フランスの個人総合時間賞において、リーダーが着用する「マイヨ・ジョーヌ」は何色のジャージ？", a: ["黄", "黄色"], cat: "スポーツ" }, 
+{ q: "柔道や空手などの武道において、最高段位者が締める帯の色は何色？", a: ["黒", "黒帯"], cat: "スポーツ" }, 
+ { q: "オランダのナショナルカラーであり、サッカーオランダ代表の愛称にもなっている色は何色？", a: ["オレンジ", "橙"], cat: "地理" },
+{ q: "がんの早期発見・早期診断を呼びかける啓発キャンペーンを、何色のリボン運動という？", a: ["ピンク", "ピンクリボン"], cat: "社会" },
+  { q: "茨城県日立市に本社を置き、銅の製錬や先端素材の開発で世界的なシェアを持つ企業は何？", a: ["JX金属"], cat: "企業" },
+  { q: "裁縫で布に印をつけるために使われ、時間が経つと消えたり、水で消せたりする筆記具を何という？", a: ["チャコペン", "チャコ"], cat: "生活" },
+  { q: "中国四大料理のうち、「麻婆豆腐」や「担々麺」に代表される、唐辛子や花椒（ホアジャオ）を多用する種類は何？", a: ["四川料理"], cat: "料理" },
+  { q: "「中国四大料理のうち、素材の持ち味を活かした飲茶やフカヒレ料理が有名な種類は何？", a: ["広東料理"], cat: "料理" },
+  { q: "日本三名瀑のうち茨城県大子町にあり、四度の滝の別名を持つ滝は何？", a: ["袋田の滝"], cat: "地理" },
+  { q: "エレキギターの大型アンプで圧倒的なシェアを持ち、そのロゴデザインも有名なイギリスのブランドは何？", a: ["マーシャル", "Marshall"], cat: "音楽" },
+  { q: "マグマの熱を利用して蒸気を取り出し、タービンを回して発電するエネルギーを何という？", a: ["地熱", "地熱発電"], cat: "科学" },
+  { q: "図形の一部を拡大すると、全体と同じ形が無限に現れるような「自己相似」の幾何学構造を何という？", a: ["フラクタル", "フラクタル図形"], cat: "数学" },
+  { q: "1990年から2020年まで実施された、現在の「大学入学共通テスト」の前身にあたる試験は何？", a: ["センター試験", "大学入試センター試験"], cat: "教育" },
+  { q: "疾走する馬の上から、的に向かって鏑矢（かぶらや）を射る、日本の伝統的な騎射の儀式は何？", a: ["流鏑馬", "やぶさめ"], cat: "文化" },
+  { q: "オリオン株式会社が販売する、タバコを模した形とはっか味が特徴のロングセラー駄菓子は何？", a: ["ココアシガレット"], cat: "食品" },  { q: "日本で最も大きな湖は琵琶湖ですが、2番目に大きい茨城県にある湖は何？", a: ["霞ヶ浦"], cat: "地理" },
+  { q: "野球で、バッターが打った瞬間にホームランだと確信し、ゆっくり歩き出す動作を何という？", a: ["確信歩き"], cat: "スポーツ" },
+  { q: "「なぜ山に登るのか」という問いに対して「そこに山があるから」という言葉を残したとされる、1924年にエベレストで消息を絶ったイギリスの登山家は誰？", a: ["ジョージ・マロリー"], cat: "世界史" },
+  { q: "火を崇めることから「拝火教」とも呼ばれる、古代ペルシャで信仰された宗教は何？", a: ["ゾロアスター教"], cat: "宗教" },
+  { q: "花札の10月の絵柄である「鹿」が横を向いていることから、無視することを意味するようになった言葉は何？", a: ["シカト"], cat: "雑学" },
+  { q: "スポーツやゲームで、両チームのリードが激しく入れ替わる接戦のことを、ある遊具に例えて何という？", a: ["シーソーゲーム"], cat: "スポーツ" },
+  { q: "ジャガイモ、タバコ、トマトなどが共通して分類される、植物学上の「科」は何？", a: ["ナス科"], cat: "生物" },
+  { q: "「えたいの知れない不吉な塊が私の心を始終圧えつけていた」という書き出しで始まる、梶井基次郎の短編小説は何？", a: ["檸檬", "レモン"], cat: "文学" },
+  { q: "古代ギリシャの都市国家に由来する言葉で、厳格で過酷な教育や訓練の代名詞となっているのは何？", a: ["スパルタ"], cat: "歴史" },
+  { q: "マラソン」の語源となった,紀元前490年にギリシャ軍がペルシャ軍を破った戦いは何？", a: ["マラトンの戦い"], cat: "世界史" },
+  { q: "6、28、496のように、自分自身を除く正の約数の和が、元の数と等しくなる自然数を何という？", a: ["完全数"], cat: "数学" },
+  { q: "隣り合う2つの数を足すと次の数になる、「1, 1, 2, 3, 5, 8...」と続く数列を何という？", a: ["フィボナッチ数列"], cat: "数学" },
+  { q: "「百」という字から一番上の「一」を取ると「白」になることから、99歳のお祝いを何という？", a: ["白寿"], cat: "文化" },
+  { q: "「米」という漢字を分解すると「八十八」になることから、88歳のお祝いを何という？", a: ["米寿"], cat: "文化" },
+  { q: "古代オリンピックからの伝統種目で、重い円盤を遠くに投げる陸上競技は何？", a: ["円盤投げ"], cat: "スポーツ" },
+  { q: "体操競技の種目で、12メートル四方のマットの上でアクロバティックな演技を行うのは何？", a: ["ゆか"], cat: "スポーツ" },
+  { q: "体操競技の男子種目で、2つの取っ手がついた馬体の上で旋回などの技を行うのは何？", a: ["あん馬"], cat: "スポーツ" },
+  { q: "体操競技の種目で、ロイター板を蹴って台に手をつき、空中技を繰り出して着地するのは何？", a: ["跳馬"], cat: "スポーツ" },
+  { q: "曲の途中で主音を変化させ、異なる「調」に移行することを音楽用語で何という？", a: ["転調"], cat: "音楽" },
+  { q: "急降下時には時速300kmを超えると言われる、猛禽類に分類される鳥は何？", a: ["ハヤブサ", "はやぶさ"], cat: "生物" },
+  { q: "JR東日本が運行する、最高時速320kmを誇る東北新幹線の最速達列車の愛称は何？", a: ["はやぶさ"], cat: "乗り物" },
+  { q: "縄跳びの技の一つで、1回のジャンプの間に「あや跳び」と「二重跳び」を組み合わせて行うのは何？", a: ["はやぶさ"], cat: "スポーツ" },
+  { q: "「ろうそく」、「日本一周」、「灯台」などの技がある、糸でつながった「玉」が特徴的な日本の伝承玩具は何？", a: ["けん玉"], cat: "文化" },
+  { q: "七福神の中で唯一日本由来の神様で、右手に釣竿、左手に鯛を抱えた姿で知られる商売繁盛の神は何？", a: ["恵比寿", "えびす"], cat: "文化" },
+  { q: "ギリシャ神話の双子カストルとポルックスの兄弟をモデルとする、5月後半から6月前半生まれの誕生星座は何？", a: ["ふたご座", "双子座"], cat: "天文" },
+  { q: "北欧神話の主神で、槍「グングニル」を持ち、知恵を得るために片目を捧げたとされる神は誰？", a: ["オーディン"], cat: "神話" },
+  { q: "広辞苑などの辞書から選んだ「誰も知らないような言葉」の意味をでっち上げ、本物を当てる心理ゲームは何？", a: ["たほいや"], cat: "遊び" },
+  { q: "『我々はどこから来たのか 我々は何者か 我々はどこへ行くのか』などの代表作がある、タヒチに移住したフランスの画家は誰？", a: ["ゴーギャン"], cat: "美術" },
+  { q: "和名を「瑠璃（るり）」といい、古代エジプトでは幸運を呼ぶ石として尊ばれた、深い青色が特徴の宝石は何？", a: ["ラピスラズリ"], cat: "宝石" },
+  { q: "『真珠の耳飾りの少女』や『牛乳を注ぐ女』で知られる、17世紀オランダの画家は誰？", a: ["フェルメール"], cat: "美術" },
+  { q: "アイスクリームを丸くすくって盛り付けるために使われる、カチカチとレバーを握る道具を何という？", a: ["ディッシャー"], cat: "料理" },
+  { q: "親指とそれ以外の4本の指が分かれた形をしている、オーブン料理などで使う厚手の防寒・防熱用手袋を何という？", a: ["ミトン"], cat: "生活" },
+  { q: "ホタテ貝の形をした型で焼き上げられる、フランスのロレーヌ地方発祥の焼き菓子は何？", a: ["マドレーヌ"], cat: "料理" },
+  { q: "「和製R&Bの女王」と称され、『あの鐘を鳴らすのはあなた』などのヒット曲やバラエティでも活躍する歌手は誰？", a: ["和田アキ子"], cat: "芸能" },
+  { q: "1930年に発見されたが、2006年の国際天文学連合の定義により惑星から準惑星へと分類が変更された天体は何？", a: ["冥王星"], cat: "天文" },
+  { q: "火星と木星の間にある小惑星帯（アステロイドベルト）に位置する、最初に発見された準惑星は何？", a: ["ケレス", "セレス"], cat: "天文" },
+  { q: "哲学者ソクラテスが提唱した、「自分がいかに分かっていないかを知る」という真理への出発点となる考え方は何？", a: ["無知の知"], cat: "哲学" },
+  { q: "スーラやシニャックが用いた、絵具を混ぜずに細かい色の点を敷き詰めて描く技法を何という？", a: ["点描", "点描画"], cat: "美術" },
+  { q: "食パンの袋の口を留めている、プラスチック製の凹型のクリップを正式名称で何という？", a: ["バッグクロージャー"], cat: "雑学" },
+  { q: "木や石の表面に紙を当て、鉛筆などでこすって模様を写し取る、シュルレアリスムでも使われる技法は何？", a: ["フロッタージュ"], cat: "美術" },
+  { q: "もともとは中国から伝わった拳遊びの一種で、グー・チョキ・パーの三すくみで勝敗を決める遊びは何？", a: ["じゃんけん"], cat: "遊び" },
+  { q: "「人々を笑わせ、そして考えさせる研究」に対して贈られる、ノーベル賞のパロディとして創設された賞は何？", a: ["イグノーベル賞"], cat: "科学" },
+  { q: "アジアとヨーロッパにまたがり、世界三大料理の一つに数えられる料理やカッパドキアの奇岩で知られる国はどこ？", a: ["トルコ"], cat: "地理" },
+  { q: "満潮時でも沈まないようコンクリートの護岸で守られている日本の領土の最南端に位置する島は何？", a: ["沖ノ鳥島"], cat: "地理" },
+  { q: "泳ぎの得意な者でも失敗することがあるという意味の、「弘法も筆の誤り」と同じ内容のことわざは何？", a: ["河童の川流れ"], cat: "ことわざ" },
+  { q: "フランス語で「足」という意味がある、焼いたマカロンの縁にできる独特のひだ状の膨らみを何という？", a: ["ピエ"], cat: "料理" },
+  { q: "参加者がそれぞれ持ち寄った中身のわからない具材を、真っ暗な中で煮込んで食べる遊びを何という？", a: ["闇鍋"], cat: "遊び" }
+  
+
+];
+
+/* ===== グローバル ===== */
+let myName = '', roomKey = '', myId = '';
+let isHost = false;
+let players = {};
+let roomUnsubscribe = null;
+let totalQuestions = 10;
+let charRevealInterval = null;
+let usedIndicesOnline = [];
+let usedIndicesSolo = [];
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function selectQuestions(count) {
+  let available = QUIZ_LIST.map((_, i) => i).filter(i => !usedIndicesOnline.includes(i));
+  if (available.length < count) { usedIndicesOnline = []; available = QUIZ_LIST.map((_, i) => i); }
+  let selectedIndices = shuffleArray(available).slice(0, count);
+  usedIndicesOnline.push(...selectedIndices);
+  return selectedIndices.map(i => QUIZ_LIST[i]);
+}
+
+/* ===== タイトル ===== */
+function showOnlineSetup() {
+  document.getElementById('modeSelect').style.display = 'none';
+  document.getElementById('onlineSetup').style.display = 'block';
+}
+function backToTitle() {
+  if (roomUnsubscribe) { roomUnsubscribe(); roomUnsubscribe = null; }
+  stopCharReveal();
+  soloStopReveal(); // ソロのタイマーも止める
+  document.getElementById('resultOverlay').classList.remove('show');
+  document.getElementById('modeSelect').style.display = 'block';
+  document.getElementById('onlineSetup').style.display = 'none';
+  showScreen('titleScreen');
+}
+function toggleRoomAction(action) {
+  document.getElementById('createSettings').style.display = action === 'create' ? 'block' : 'none';
+}
+
+/* ===================================================
+   一人で特訓モード（早押し形式に改修）
+=================================================== */
+let soloQuiz = {};
+let soloDisplayIndex = 0;
+let soloLives = 3;
+let soloRevealInterval = null;  // 自動文字出しタイマー
+let soloBuzzed = false;         // 早押し済みフラグ
+let soloFinished = false;       // 問題終了フラグ
+
+function showSoloMode() {
+  showScreen('soloScreen');
+  soloInitGame();
+}
+
+function soloInitGame() {
+  // 未出題の問題番号を抽出
+  let available = QUIZ_LIST.map((_, i) => i).filter(i => !usedIndicesSolo.includes(i));
+  if (available.length === 0) { usedIndicesSolo = []; available = QUIZ_LIST.map((_, i) => i); }
+  let randomIndex = available[Math.floor(Math.random() * available.length)];
+  usedIndicesSolo.push(randomIndex);
+  soloQuiz = QUIZ_LIST[randomIndex];
+
+  soloDisplayIndex = 1;
+  soloLives = 3;
+  soloBuzzed = false;
+  soloFinished = false;
+
+  document.getElementById('soloAnswerInput') && document.getElementById('soloAnswerInput').remove && true;
+  document.getElementById('soloCatTag').textContent = soloQuiz.cat;
+  updateSoloLife();
+  document.getElementById('soloResultMsg').textContent = '';
+  document.getElementById('soloResultMsg').className = 'solo-result-msg';
+  document.getElementById('soloRetryBtn').style.display = 'none';
+
+  // アクションエリアを「早押しボタン＋降参」に戻す
+  renderSoloBuzzState();
+
+  // 問題文表示エリアをリセット
+  document.getElementById('soloQuestionArea').textContent = soloQuiz.q.substring(0, 1);
+
+  // 自動文字出し開始
+  soloStartReveal();
+}
+
+/** 自動文字出しタイマー開始 */
+function soloStartReveal() {
+  soloStopReveal();
+  if (soloDisplayIndex >= soloQuiz.q.length) return;
+  soloRevealInterval = setInterval(() => {
+    if (soloBuzzed || soloFinished) { soloStopReveal(); return; }
+    if (soloDisplayIndex < soloQuiz.q.length) {
+      soloDisplayIndex++;
+      document.getElementById('soloQuestionArea').textContent = soloQuiz.q.substring(0, soloDisplayIndex);
+    } else {
+      soloStopReveal();
+    }
+  }, 750);
+}
+
+/** 自動文字出しタイマー停止 */
+function soloStopReveal() {
+  if (soloRevealInterval) { clearInterval(soloRevealInterval); soloRevealInterval = null; }
+}
+
+/** 早押し前の表示：早押しボタン＋降参ボタン */
+function renderSoloBuzzState() {
+  document.getElementById('soloActionArea').innerHTML = `
+    <button class="solo-buzz-btn" id="soloBuzzBtn" onclick="soloPressbuzz()">⚡ 早押し！</button>
+    <div class="solo-surrender-row">
+      <button class="surrender-btn" onclick="soloPressSurrender()">🏳 降参する</button>
+    </div>`;
+}
+
+/** 早押し後の表示：回答入力欄 */
+function renderSoloAnswerState() {
+  document.getElementById('soloActionArea').innerHTML = `
+    <div class="solo-answer-card">
+      <div class="solo-answer-label">⚡ 早押し！回答してください</div>
+      <div class="solo-controls">
+        <input id="soloAnswerInput" placeholder="答えを入力..." maxlength="30" autocomplete="off">
+        <button onclick="soloCheckAnswer()">回答</button>
+      </div>
+    </div>`;
+  setTimeout(() => {
+    const inp = document.getElementById('soloAnswerInput');
+    if (inp) {
+      inp.focus();
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') soloCheckAnswer(); });
+    }
+  }, 50);
+}
+
+/** 早押しボタンが押されたとき */
+function soloPressbuzz() {
+  if (soloBuzzed || soloFinished) return;
+  soloBuzzed = true;
+  soloStopReveal(); // 文字出し停止（表示はその時点のまま）
+  renderSoloAnswerState();
+}
+
+/** 降参ボタン */
+function soloPressSurrender() {
+  if (soloFinished) return;
+  soloStopReveal();
+  soloEndGame(false, true);
+}
+
+/** 回答チェック */
+function soloCheckAnswer() {
+  const inp = document.getElementById('soloAnswerInput');
+  if (!inp) return;
+  const ans = inp.value.trim();
+  if (!ans) return;
+
+  if (soloQuiz.a.includes(ans)) {
+    soloEndGame(true);
+    return;
+  }
+
+  // 不正解
+  soloLives--;
+  updateSoloLife();
+  const card = document.querySelector('.solo-card');
+  card.classList.add('shake');
+  setTimeout(() => card.classList.remove('shake'), 400);
+
+  if (soloLives <= 0) {
+    soloEndGame(false);
+    return;
+  }
+
+  // 不正解でライフ残あり → 早押し状態をリセットして文字出し再開
+  const msg = document.getElementById('soloResultMsg');
+  msg.textContent = `❌ 不正解！残り ${soloLives} 回`;
+  msg.className = 'solo-result-msg error';
+
+  soloBuzzed = false;
+  renderSoloBuzzState(); // 早押しボタンを復活
+  soloStartReveal();     // 文字出し再開
+}
+
+/** ゲーム終了 */
+function soloEndGame(isWin, isSurrender = false) {
+  soloFinished = true;
+  soloStopReveal();
+  // 問題文を全表示
+  document.getElementById('soloQuestionArea').textContent = soloQuiz.q;
+  // アクションエリアを無効化
+  document.getElementById('soloActionArea').innerHTML = '';
+
+  const msg = document.getElementById('soloResultMsg');
+  if (isWin) {
+    msg.textContent = `✅ 正解！ 答えは「${soloQuiz.a[0]}」でした。`;
+    msg.className = 'solo-result-msg success';
+  } else if (isSurrender) {
+    msg.textContent = `🏳 降参！ 正解は「${soloQuiz.a[0]}」でした。`;
+    msg.className = 'solo-result-msg error';
+  } else {
+    msg.textContent = `❌ 残念！ 正解は「${soloQuiz.a[0]}」でした。`;
+    msg.className = 'solo-result-msg error';
+  }
+  document.getElementById('soloRetryBtn').style.display = 'block';
+}
+
+function updateSoloLife() {
+  document.getElementById('soloLife').textContent = '❤️'.repeat(soloLives) + '🖤'.repeat(3 - soloLives);
+}
+
+/* ===== オンライン ===== */
+function startOnline() {
+  if (!window._db) { alert('初期化中です'); return; }
+  myName = document.getElementById('playerName').value.trim();
+  if (!myName) { alert('名前を入力してください'); return; }
+  roomKey = document.getElementById('roomKeyInput').value.trim();
+  if (!roomKey) { alert('合言葉を入力してください'); return; }
+  myId = myName + '_' + Date.now();
+  const action = document.querySelector('input[name="roomAction"]:checked')?.value;
+  if (!action) { alert('部屋を作るか入るかを選択してください'); return; }
+  if (action === 'create') createRoom(); else joinRoom();
+}
+
+function freshRoomState(questions) {
+  return {
+    phase: 'waiting', host: myId, totalQuestions,
+    currentQIndex: 0,
+    players: { [myId]: { name: myName, score: 0 } },
+    questions: questions.map(q => ({ q: q.q, a: q.a, cat: q.cat })),
+    answers: {}, resting: {}, locked: {}, surrendered: {}, buzzerId: '',
+    revealIndex: 1, revealStopped: false, nextReady: {}
+  };
+}
+
+function createRoom() {
+  isHost = true;
+  totalQuestions = parseInt(document.querySelector('input[name="qCount"]:checked')?.value || 10);
+  const questions = selectQuestions(totalQuestions);
+  window._set(window._ref(window._db, `quiz_rooms/${roomKey}`), freshRoomState(questions));
+  showWaitingScreen(); listenRoom();
+}
+
+function joinRoom() {
+  isHost = false;
+  window._get(window._ref(window._db, `quiz_rooms/${roomKey}`)).then(snap => {
+    if (!snap.exists()) { alert('部屋が見つかりません'); return; }
+    const d = snap.val();
+    if (d.phase !== 'waiting') { alert('すでにゲームが始まっています'); return; }
+    totalQuestions = d.totalQuestions || 10;
+    window._update(window._ref(window._db, `quiz_rooms/${roomKey}/players`), { [myId]: { name: myName, score: 0 } });
+    showWaitingScreen(); listenRoom();
+  });
+}
+
+function showWaitingScreen() {
+  showScreen('waitingScreen');
+  document.getElementById('roomKeyDisplay').textContent = roomKey;
+  document.getElementById('waitingTitle').textContent = isHost ? '参加者を待っています...' : 'ホストの開始を待っています...';
+  document.getElementById('startGameBtn').style.display = isHost ? 'inline-block' : 'none';
+}
+
+function leaveRoom() {
+  if (roomUnsubscribe) { roomUnsubscribe(); roomUnsubscribe = null; }
+  window._remove(window._ref(window._db, `quiz_rooms/${roomKey}/players/${myId}`));
+  backToTitle();
+}
+
+function hostStartGame() {
+  if (Object.keys(players).length < 2) { alert('2人以上必要です'); return; }
+  window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), {
+    phase: 'playing', currentQIndex: 0, revealIndex: 1,
+    buzzerId: '', revealStopped: false,
+    answers: {}, resting: {}, locked: {}, surrendered: {}, nextReady: {}
+  });
+}
+
+function listenRoom() {
+  if (roomUnsubscribe) { roomUnsubscribe(); roomUnsubscribe = null; }
+  window._onDisconnect(window._ref(window._db, `quiz_rooms/${roomKey}/disconnected/${myId}`)).set(true);
+  roomUnsubscribe = window._onValue(window._ref(window._db, `quiz_rooms/${roomKey}`), snap => {
+    const d = snap.val();
+    if (!d) return;
+    players = d.players || {};
+    if (d.phase === 'waiting')  { updateWaitingList(d); return; }
+    if (d.phase === 'playing')  { showScreen('gameScreen'); document.getElementById('resultOverlay').classList.remove('show'); updateGameScreen(d); return; }
+    if (d.phase === 'result')   { showScreen('gameScreen'); showResultOverlay(d); return; }
+    if (d.phase === 'final')    { document.getElementById('resultOverlay').classList.remove('show'); showFinalScreen(d); return; }
+  });
+}
+
+function updateWaitingList(d) {
+  const list = document.getElementById('playerListWaiting');
+  list.innerHTML = '';
+  Object.values(d.players || {}).forEach(p => {
+    const li = document.createElement('li');
+    li.innerHTML = `<div class="player-dot"></div>${p.name}`;
+    list.appendChild(li);
+  });
+}
+
+function updateGameScreen(d) {
+  const qi = d.currentQIndex || 0;
+  const qs = d.questions || [];
+  if (qi >= qs.length) return;
+  const q = qs[qi];
+
+  document.getElementById('qNumBadge').textContent = `Q${qi + 1} / ${qs.length}`;
+  document.getElementById('onlineCatTag').textContent = q.cat || '';
+
+  const revealIdx = d.revealIndex || 1;
+  document.getElementById('onlineQuestionText').textContent = q.q.substring(0, revealIdx);
+
+  const buzzer = d.buzzerId || '';
+  const resting = d.resting || {};
+  const locked = d.locked || {};
+  const surrendered = d.surrendered || {};
+  const isBuzzerMe = buzzer === myId;
+
+  const banner = document.getElementById('buzzBanner');
+  if (!buzzer) { banner.className = 'buzz-banner nobody'; banner.textContent = '問題文を読んでいます...'; }
+  else if (isBuzzerMe) { banner.className = 'buzz-banner me'; banner.textContent = ' あなたが早押し！'; }
+  else { const bn = players[buzzer]?.name || buzzer; banner.className = 'buzz-banner other'; banner.textContent = ` ${bn} が早押し！！`; }
+
+  updatePlayerStatusBoxes(d, q);
+  renderActionArea(d, q, buzzer, resting, locked, surrendered, isBuzzerMe);
+  updateAnswersLog(d, q);
+
+  if (isHost && !d.revealStopped && revealIdx < q.q.length) {
+    if (!charRevealInterval) {
+      charRevealInterval = setInterval(() => {
+        window._get(window._ref(window._db, `quiz_rooms/${roomKey}`)).then(snap => {
+          const cur = snap.val();
+          if (!cur || cur.phase !== 'playing' || cur.revealStopped) { stopCharReveal(); return; }
+          const curReveal = cur.revealIndex || 1;
+          if (curReveal < q.q.length) {
+            window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { revealIndex: curReveal + 1 });
+          } else { stopCharReveal(); }
+        });
+      }, 750);
+    }
+  } else if (d.revealStopped || revealIdx >= q.q.length) { stopCharReveal(); }
+
+  if (isHost) {
+    const pIds = Object.keys(players);
+    const allSurrendered = pIds.length > 0 && pIds.every(id => surrendered[id]);
+    if (allSurrendered) { stopCharReveal(); window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { phase: 'result' }); return; }
+    const allResting = pIds.length > 0 && pIds.every(id => resting[id] || surrendered[id]);
+    if (allResting) { stopCharReveal(); window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { phase: 'result' }); return; }
+  }
+}
+
+function renderActionArea(d, q, buzzer, resting, locked, surrendered, isBuzzerMe) {
+  const area = document.getElementById('actionArea');
+  const myResting = resting[myId];
+  const myLocked = locked[myId];
+  const mySurrendered = surrendered[myId];
+
+  if (mySurrendered) { area.innerHTML = `<div class="surrendered-notice">🏳️ 降参しました。他の人の結果を待っています...</div>`; return; }
+  if (myResting) { area.innerHTML = `<div class="locked-notice">🔒 不正解... 相手の結果を待っています</div>`; return; }
+  if (isBuzzerMe) {
+    area.innerHTML = `<div class="answer-card"><div style="font-size:13px;color:var(--green);font-weight:700;margin-bottom:8px;"> 回答してください</div><div class="answer-input-row"><input id="onlineAnswerInput" placeholder="答えを入力..." maxlength="30" autocomplete="off"><button onclick="submitOnlineAnswer()">回答</button></div></div>`;
+    setTimeout(() => {
+      const inp = document.getElementById('onlineAnswerInput');
+      if (inp) { inp.focus(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitOnlineAnswer(); }); }
+    }, 50);
+    return;
+  }
+  if (buzzer) { const bn = players[buzzer]?.name || buzzer; area.innerHTML = `<div class="waiting-answer-notice">⏳ ${bn} が回答中... 待ってください</div>`; return; }
+  const canBuzz = !myResting && !myLocked;
+  area.innerHTML = `
+    <button class="buzz-btn" id="buzzBtn" onclick="pressBuzz()" ${canBuzz ? '' : 'disabled'}> 早押し！</button>
+    <div class="surrender-row"><button class="surrender-btn" onclick="pressSurrender()"> 降参する</button></div>`;
+}
+
+function updatePlayerStatusBoxes(d, q) {
+  const pIds = Object.keys(players);
+  const container = document.getElementById('playersStatusCard');
+  container.innerHTML = pIds.map(id => {
+    const p = players[id];
+    let statusText = '待機', statusClass = '';
+    const ans = d.answers?.[id];
+    const isCorrect = ans && q.a.includes(ans);
+    if (d.surrendered?.[id]) { statusText = '🏳降参'; }
+    else if (isCorrect) { statusText = '✅正解'; statusClass = 'green'; }
+    else if (d.resting?.[id]) { statusText = d.locked?.[id] ? 'ロック' : '❌ミス'; statusClass = d.locked?.[id] ? 'orange' : 'red'; }
+    else if (d.buzzerId === id) { statusText = '入力中'; statusClass = 'red'; }
+    return `<div class="player-status-box"><div class="psb-name">${p.name}</div><div class="psb-score">${p.score || 0}pt</div><div class="psb-status ${statusClass}">${statusText}</div></div>`;
+  }).join('');
+}
+
+function updateAnswersLog(d, q) {
+  const answers = d.answers || {};
+  const surrendered = d.surrendered || {};
+  const container = document.getElementById('answersLog');
+  const entries = [];
+  Object.entries(answers).forEach(([id, ans]) => {
+    if (!ans) return;
+    const isCorrect = q.a.includes(ans);
+    entries.push({ name: players[id]?.name || id, ans, isCorrect, isSurrender: false });
+  });
+  Object.keys(surrendered).forEach(id => {
+    if (surrendered[id] && !answers[id]) entries.push({ name: players[id]?.name || id, ans: '降参', isSurrender: true });
+  });
+  if (entries.length === 0) { container.innerHTML = '<div style="font-size:12px;color:var(--gray-mid);">まだ回答はありません</div>'; return; }
+  container.innerHTML = entries.map(e => {
+    if (e.isSurrender) return `<div class="answer-log-row"><span class="log-name">${e.name}</span><span class="log-ans">🏳 降参</span><span class="log-mark"></span></div>`;
+    const mark = e.isCorrect ? '⭕' : '❌';
+    return `<div class="answer-log-row"><span class="log-name">${e.name}</span><span class="log-ans">「${e.ans}」</span><span class="log-mark">${mark}</span></div>`;
+  }).join('');
+}
+
+function pressBuzz() {
+  const btn = document.getElementById('buzzBtn');
+  if (btn) btn.disabled = true;
+  window._get(window._ref(window._db, `quiz_rooms/${roomKey}`)).then(snap => {
+    const d = snap.val();
+    if (!d || d.phase !== 'playing') return;
+    if (d.buzzerId) return;
+    if (d.resting?.[myId] || d.locked?.[myId] || d.surrendered?.[myId]) return;
+    window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { buzzerId: myId, revealStopped: true });
+  });
+}
+
+function pressSurrender() {
+  if (!confirm('降参しますか？')) return;
+  window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { [`surrendered/${myId}`]: true });
+}
+
+function submitOnlineAnswer() {
+  const inp = document.getElementById('onlineAnswerInput');
+  if (!inp) return;
+  const ans = inp.value.trim();
+  if (!ans) return;
+  inp.disabled = true;
+  window._get(window._ref(window._db, `quiz_rooms/${roomKey}`)).then(snap => {
+    const d = snap.val();
+    if (!d || d.phase !== 'playing') return;
+    const qi = d.currentQIndex || 0;
+    const q = d.questions?.[qi];
+    if (!q) return;
+    const isCorrect = q.a.includes(ans);
+    if (isCorrect) {
+      const newScore = (players[myId]?.score || 0) + 1;
+      window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { [`answers/${myId}`]: ans, [`players/${myId}/score`]: newScore, phase: 'result' });
+    } else {
+      const pIds = Object.keys(players);
+      const updates = { [`answers/${myId}`]: ans, [`resting/${myId}`]: true, [`locked/${myId}`]: true, buzzerId: '', revealStopped: false };
+      pIds.forEach(id => { if (id !== myId) updates[`locked/${id}`] = false; });
+      window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), updates);
+    }
+  });
+}
+
+function showResultOverlay(d) {
+  stopCharReveal();
+  const qi = d.currentQIndex || 0;
+  const q = d.questions?.[qi];
+  if (!q) return;
+  document.getElementById('resultQuestionFull').textContent = `問題：${q.q}`;
+  const answers = d.answers || {};
+  const pIds = Object.keys(players);
+  const correctIds = pIds.filter(id => answers[id] && q.a.includes(answers[id]));
+  const myCorrect = q.a.includes(answers[myId]);
+  let statusText;
+if (myCorrect) {
+  statusText = '正解！';
+} else if (correctIds.length > 0) {
+  statusText = `${players[correctIds[0]]?.name || correctIds[0]} が正解`;
+} else if (Object.keys(d.surrendered || {}).length === Object.keys(players).length) {
+  statusText = '全員降参...';
+} else {
+  statusText = '全員不正解...';
+}
+document.getElementById('resultStatus').textContent = statusText;
+  document.getElementById('resultStatus').className = 'result-status ' + (myCorrect ? 'success' : 'fail');
+  document.getElementById('resultAnswer').textContent = `答え：「${q.a[0]}」`;
+  document.getElementById('resultWinner').textContent = correctIds.length > 0 ? `正解者：${correctIds.map(id => players[id]?.name || id).join('、')} ` : '今回は全員不正解でした';
+  const scoresHtml = [...pIds].sort((a, b) => (players[b]?.score || 0) - (players[a]?.score || 0)).map(id => `<div class="result-score-row"><span class="result-score-name">${players[id]?.name || id}</span><span class="result-score-num">${players[id]?.score || 0}点</span></div>`).join('');
+  document.getElementById('resultScores').innerHTML = scoresHtml;
+  const nextBtn = document.getElementById('nextQuestionBtn');
+  nextBtn.disabled = false; nextBtn.textContent = '次の問題へ';
+  document.getElementById('resultWaiting').textContent = '';
+  document.getElementById('resultOverlay').classList.add('show');
+  if (isHost && d.nextReady) { if (pIds.every(id => d.nextReady[id])) { proceedToNext(d); return; } }
+  if (d.nextReady?.[myId]) {
+    nextBtn.disabled = true; nextBtn.textContent = '待機中...';
+    const cnt = Object.values(d.nextReady).filter(Boolean).length;
+    document.getElementById('resultWaiting').textContent = `${cnt} / ${pIds.length} 人が準備完了`;
+  }
+}
+
+function pressNextQuestion() {
+  window._update(window._ref(window._db, `quiz_rooms/${roomKey}/nextReady`), { [myId]: true });
+  const btn = document.getElementById('nextQuestionBtn');
+  btn.disabled = true; btn.textContent = '待機中...';
+}
+
+function proceedToNext(d) {
+  if (!isHost) return;
+  const qi = d.currentQIndex || 0;
+  const total = d.questions?.length || totalQuestions;
+  if (qi + 1 >= total) { window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { phase: 'final' }); }
+  else { window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { phase: 'playing', currentQIndex: qi + 1, revealIndex: 1, revealStopped: false, buzzerId: '', answers: {}, resting: {}, locked: {}, surrendered: {}, nextReady: {} }); }
+}
+
+function showFinalScreen(d) {
+  stopCharReveal();
+  showScreen('finalScreen');
+  document.getElementById('resultOverlay').classList.remove('show');
+  const pIds = Object.keys(players);
+  const sorted = [...pIds].sort((a, b) => (players[b]?.score || 0) - (players[a]?.score || 0));
+  const winner = players[sorted[0]];
+  document.getElementById('finalWinnerBadge').innerHTML = winner ? `<div class="final-winner-badge"> ${winner.name} の勝利！</div>` : '';
+  document.getElementById('finalScoreTable').innerHTML = sorted.map((id, i) => `<tr><td class="final-rank">${i + 1}位</td><td class="final-name">${players[id]?.name || id}</td><td class="final-pts">${players[id]?.score || 0}点</td></tr>`).join('');
+  const playAgainBtn = document.getElementById('playAgainBtn');
+  if (!isHost) { playAgainBtn.style.display = 'none'; }
+  document.getElementById('finalWaitMsg').textContent = isHost ? '' : 'ホストが次のゲームを開始するのを待っています...';
+}
+
+function playAgain() {
+  if (!isHost) return;
+  const questions = selectQuestions(totalQuestions);
+  const scoreReset = {};
+  Object.keys(players).forEach(id => { scoreReset[`players/${id}/score`] = 0; });
+  window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { ...scoreReset, phase: 'waiting', currentQIndex: 0, revealIndex: 1, revealStopped: false, buzzerId: '', questions: questions.map(q => ({ q: q.q, a: q.a, cat: q.cat })), answers: {}, resting: {}, locked: {}, surrendered: {}, nextReady: {} });
+  showWaitingScreen();
+}
+
+function stopCharReveal() {
+  if (charRevealInterval) { clearInterval(charRevealInterval); charRevealInterval = null; }
+}
+</script>
+</body>
+</html>
