@@ -33,7 +33,7 @@ body {
 
 .screen { display: none !important; }
 .screen.active { display: flex !important; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-#gameScreen.active, #soloScreen.active, #waitingScreen.active { display: block !important; }
+#gameScreen.active, #soloScreen.active, #waitingScreen.active, #soloSetupScreen.active { display: block !important; }
 
 button {
   padding: 10px 20px; border: none; border-radius: var(--radius);
@@ -53,6 +53,29 @@ input, select {
 }
 input:focus, select:focus { border-color: var(--purple-mid); }
 
+/* ===== ジャンル選択チップ ===== */
+.genre-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.genre-chip {
+  padding: 5px 12px;
+  border: 2px solid var(--purple-mid);
+  border-radius: 50px;
+  color: var(--purple-mid);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: white;
+  user-select: none;
+}
+.genre-chip.selected { background: var(--purple-mid); color: white; }
+.genre-chip:hover { opacity: 0.8; }
+.genre-select-all-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.genre-select-all-row button {
+  font-size: 11px; padding: 4px 12px; border-radius: 50px;
+  background: var(--purple-pale); color: var(--purple-mid);
+}
+.genre-select-all-row button:hover { background: var(--purple-mid); color: white; transform: none; }
+
 /* ===== タイトル ===== */
 #titleScreen { text-align: center; }
 .title-logo {
@@ -68,22 +91,21 @@ input:focus, select:focus { border-color: var(--purple-mid); }
   color: white; text-align: center; min-width: 200px;
 }
 .mode-card:hover { background: rgba(175,169,236,0.15); border-color: var(--purple-accent); transform: translateY(-2px); }
-.mode-card-icon { font-size: 40px; margin-bottom: 10px; }
 .mode-card-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
 .mode-card-desc { font-size: 12px; color: var(--purple-accent); line-height: 1.5; }
 
 /* ===== セットアップ ===== */
 .setup-card {
   background: white; border-radius: 16px; padding: 32px;
-  box-shadow: var(--shadow); width: 100%; max-width: 440px;
+  box-shadow: var(--shadow); width: 100%; max-width: 480px;
 }
 .setup-card h3 {
   font-family: 'Zen Maru Gothic', sans-serif; font-size: 18px; color: var(--purple-dark);
   margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--purple-pale);
 }
 .form-row { margin-bottom: 16px; }
-.form-row label { display: block; font-size: 13px; color: var(--gray-dark); margin-bottom: 6px; font-weight: 700; }
-.form-row input { width: 100%; }
+.form-row > label { display: block; font-size: 13px; color: var(--gray-dark); margin-bottom: 6px; font-weight: 700; }
+.form-row input[type="text"] { width: 100%; }
 .radio-group { display: flex; gap: 10px; flex-wrap: wrap; }
 .radio-group input[type="radio"] { display: none; }
 .radio-group label {
@@ -92,8 +114,11 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 }
 .radio-group input[type="radio"]:checked + label { background: var(--purple-mid); color: white; }
 .start-btn { width: 100%; padding: 14px; font-size: 16px; border-radius: 50px; margin-top: 8px; background: linear-gradient(135deg, var(--purple-mid), var(--purple-light)); }
-.back-btn { background: transparent; border: none; color: var(--purple-accent); font-size: 13px; cursor: pointer; margin-top: 12px; }
-.back-btn:hover { color: white; background: transparent; transform: none; }
+.back-btn { background: transparent; border: none; color: var(--gray-dark); font-size: 13px; cursor: pointer; margin-top: 12px; }
+.back-btn:hover { color: var(--purple-dark); background: transparent; transform: none; }
+
+/* ===== ソロセットアップ ===== */
+#soloSetupScreen { padding: 20px; }
 
 /* ===== 待機 ===== */
 #waitingScreen { padding: 20px; max-width: 500px; margin: 0 auto; }
@@ -111,17 +136,14 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 }
 .player-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--purple-light); }
 
-/* 新しいレイアウト用CSS */
+/* ゲーム画面 */
 #gameScreen { padding: 10px; max-width: 1000px; margin: 0 auto; color: white; }
 .game-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 5px; }
 .game-main-container { display: flex; gap: 15px; align-items: flex-start; flex-wrap: wrap; }
 .game-left-col { flex: 1.6; min-width: 300px; }
 .game-right-col { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 12px; }
-
 .question-card { background: white; border-radius: 12px; padding: 15px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); margin-bottom: 10px; }
 .question-text { font-size: 1.1rem; font-weight: 700; line-height: 1.6; min-height: 60px; color: #26215C; }
-.buzz-banner { border-radius: 12px; padding: 10px; margin-bottom: 10px; text-align: center; font-weight: 900; }
-
 .players-status-card { background: white; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
 .player-status-box { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-radius: 8px; border: 1px solid #EEEDFE; color: #26215C; }
 .psb-name { flex: 1; font-size: 13px; font-weight: 700; }
@@ -129,8 +151,6 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 .psb-status { width: 70px; text-align: right; font-size: 11px; font-weight: 700; }
 .answers-log-card { background: white; border-radius: 12px; padding: 10px; max-height: 180px; overflow-y: auto; color: #26215C; }
 
-
-/* ===== 早押しバナー ===== */
 .buzz-banner {
   border-radius: var(--radius); padding: 16px 20px; margin-bottom: 12px;
   text-align: center; font-family: 'Zen Maru Gothic', sans-serif; font-size: 18px; font-weight: 900;
@@ -139,19 +159,15 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 .buzz-banner.nobody { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 400; }
 .buzz-banner.me { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; }
 .buzz-banner.other { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; animation: banner-flash 0.4s ease-out; }
-@keyframes banner-flash {
-  0% { transform: scale(1.04); }
-  100% { transform: scale(1); }
-}
+@keyframes banner-flash { 0% { transform: scale(1.04); } 100% { transform: scale(1); } }
 
-/* ===== アクションエリア ===== */
 .action-area { margin-bottom: 12px; }
 .buzz-btn {
   width: 100%; padding: 20px; font-size: 22px; font-weight: 900; border-radius: 50px;
   background: linear-gradient(135deg, #e74c3c, #c0392b); letter-spacing: 2px;
   box-shadow: 0 6px 24px rgba(231,76,60,0.35); transition: all 0.15s;
 }
-.buzz-btn:hover:not(:disabled) { background: linear-gradient(135deg, #c0392b, #962d22); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(231,76,60,0.45); }
+.buzz-btn:hover:not(:disabled) { background: linear-gradient(135deg, #c0392b, #962d22); transform: translateY(-2px); }
 .buzz-btn:disabled { background: var(--gray-mid); box-shadow: none; }
 .answer-card { background: white; border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); border: 2px solid var(--green); }
 .answer-input-row { display: flex; gap: 8px; margin-top: 8px; }
@@ -159,41 +175,19 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 .surrender-row { display: flex; justify-content: center; margin-top: 8px; }
 .surrender-btn { background: transparent; border: 1px solid var(--gray-mid); color: var(--gray-dark); font-size: 12px; padding: 6px 16px; border-radius: 50px; }
 .surrender-btn:hover { background: #f8f8f8; color: var(--red); border-color: var(--red); transform: none; }
-.locked-notice {
-  background: #fffbe6; border: 1px solid #ffaa00; border-radius: var(--radius);
-  padding: 12px 16px; color: #e67e22; font-weight: 700; font-size: 14px; text-align: center;
-}
-.waiting-answer-notice {
-  background: #fff0f0; border: 1px solid var(--red); border-radius: var(--radius);
-  padding: 12px 16px; text-align: center; font-weight: 700; font-size: 14px; color: var(--red);
-}
-.surrendered-notice {
-  background: #f8f8f8; border: 1px solid var(--gray-mid); border-radius: var(--radius);
-  padding: 12px 16px; color: var(--gray-mid); font-size: 14px; text-align: center;
-}
+.locked-notice { background: #fffbe6; border: 1px solid #ffaa00; border-radius: var(--radius); padding: 12px 16px; color: #e67e22; font-weight: 700; font-size: 14px; text-align: center; }
+.waiting-answer-notice { background: #fff0f0; border: 1px solid var(--red); border-radius: var(--radius); padding: 12px 16px; text-align: center; font-weight: 700; font-size: 14px; color: var(--red); }
+.surrendered-notice { background: #f8f8f8; border: 1px solid var(--gray-mid); border-radius: var(--radius); padding: 12px 16px; color: var(--gray-mid); font-size: 14px; text-align: center; }
 
-/* ===== 回答ログ ===== */
-.answers-log-card { background: white; border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 12px; }
-.answers-log-title { font-size: 12px; color: var(--gray-dark); font-weight: 700; margin-bottom: 10px; }
-.answer-log-row {
-  display: flex; align-items: center; gap: 6px; padding: 6px 0;
-  border-bottom: 1px solid var(--purple-pale); font-size: 14px;
-}
+.answer-log-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--purple-pale); font-size: 14px; }
 .answer-log-row:last-child { border-bottom: none; }
 .log-name { font-weight: 700; color: var(--purple-dark); min-width: 56px; flex-shrink: 0; }
 .log-ans { flex: 1; color: var(--purple-dark); }
 .log-mark { font-size: 16px; flex-shrink: 0; }
 
-/* ===== リザルト ===== */
-.result-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(26,22,64,0.85);
-  z-index: 200; align-items: center; justify-content: center; padding: 20px;
-}
+.result-overlay { display: none; position: fixed; inset: 0; background: rgba(26,22,64,0.85); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
 .result-overlay.show { display: flex; }
-.result-box {
-  background: white; border-radius: 20px; padding: 32px; max-width: 460px; width: 100%;
-  text-align: center; box-shadow: 0 8px 48px rgba(83,74,183,0.3);
-}
+.result-box { background: white; border-radius: 20px; padding: 32px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 8px 48px rgba(83,74,183,0.3); }
 .result-label { font-size: 12px; color: var(--gray-mid); letter-spacing: 2px; margin-bottom: 8px; }
 .result-status { font-family: 'Zen Maru Gothic', sans-serif; font-size: 48px; font-weight: 900; margin-bottom: 8px; }
 .result-status.success { color: var(--green); }
@@ -208,7 +202,6 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 .result-next-btn { width: 100%; padding: 13px; font-size: 15px; border-radius: 50px; }
 .result-waiting { color: var(--gray-mid); font-size: 13px; margin-top: 8px; }
 
-/* ===== 最終スコア ===== */
 #finalScreen.active { display: flex !important; }
 .final-card { background: white; border-radius: 20px; padding: 40px; max-width: 480px; width: 100%; text-align: center; box-shadow: var(--shadow); }
 .final-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 32px; font-weight: 900; color: var(--purple-dark); margin-bottom: 20px; }
@@ -220,26 +213,20 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 .final-name { font-weight: 700; color: var(--purple-dark); }
 .final-pts { font-weight: 700; color: var(--purple-mid); font-size: 18px; }
 
-/* ===== 一人で特訓 ===== */
 #soloScreen { padding: 20px; max-width: 700px; margin: 0 auto; }
-.solo-card { background: white; border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); margin: 30px auto; max-width: 600px; }
+.solo-card { background: white; border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); margin: 16px auto; max-width: 600px; }
 .solo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--purple-pale); padding-bottom: 12px; }
 .solo-life { color: var(--red); font-size: 1.4rem; letter-spacing: 2px; }
 .solo-question-area { font-size: 1.3rem; font-weight: 700; line-height: 1.8; min-height: 120px; margin-bottom: 20px; padding: 14px; background: var(--purple-pale); border-radius: 8px; color: var(--purple-dark); }
-/* ===== 一人で特訓 アクションエリア ===== */
 .solo-action-area { margin-bottom: 16px; }
-/* 早押しボタン（通常時） */
 .solo-buzz-btn {
   width: 100%; padding: 18px; font-size: 20px; font-weight: 900; border-radius: 50px;
   background: linear-gradient(135deg, #e74c3c, #c0392b); letter-spacing: 2px;
-  box-shadow: 0 6px 24px rgba(231,76,60,0.35); transition: all 0.15s; color: white;
-  border: none; cursor: pointer;
+  box-shadow: 0 6px 24px rgba(231,76,60,0.35); transition: all 0.15s; color: white; border: none; cursor: pointer;
 }
 .solo-buzz-btn:hover:not(:disabled) { background: linear-gradient(135deg, #c0392b, #962d22); transform: translateY(-2px); }
 .solo-buzz-btn:disabled { background: var(--gray-mid); box-shadow: none; cursor: not-allowed; transform: none; }
-/* 降参ボタン（早押し前に表示） */
 .solo-surrender-row { display: flex; justify-content: center; margin-top: 10px; }
-/* 回答エリア（早押し後に表示） */
 .solo-answer-card { background: white; border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); border: 2px solid var(--green); }
 .solo-answer-label { font-size: 13px; color: var(--green); font-weight: 700; margin-bottom: 8px; }
 .solo-controls { display: flex; gap: 12px; margin-top: 8px; }
@@ -249,7 +236,6 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 .solo-result-msg.error { color: var(--red); }
 .solo-retry-btn { display: none; width: 100%; padding: 13px; font-size: 15px; border-radius: 50px; margin-top: 12px; background: linear-gradient(135deg, var(--purple-mid), var(--purple-light)); }
 
-/* ===== オーバーレイ ===== */
 #overlay { display: none; position: fixed; inset: 0; background: rgba(26,22,64,0.7); z-index: 1000; align-items: center; justify-content: center; }
 #overlay.show { display: flex; }
 .overlay-box { background: white; border-radius: var(--radius); padding: 32px; text-align: center; min-width: 280px; max-width: 380px; box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
@@ -271,18 +257,19 @@ input:focus, select:focus { border-color: var(--purple-mid); }
         <div class="mode-card-title">オンライン対戦</div>
         <div class="mode-card-desc">友達と早押しバトル！</div>
       </div>
-      <div class="mode-card" onclick="showSoloMode()">
+      <div class="mode-card" onclick="showSoloSetup()">
         <div class="mode-card-title">一人で特訓</div>
         <div class="mode-card-desc">早押しして3ミス以内で正解！</div>
       </div>
     </div>
   </div>
+
   <div id="onlineSetup" style="display:none;">
     <div class="setup-card">
       <h3>オンライン対戦</h3>
       <div class="form-row">
         <label>あなたの名前</label>
-        <input id="playerName" placeholder="名前を入力" maxlength="10">
+        <input type="text" id="playerName" placeholder="名前を入力" maxlength="10">
       </div>
       <div class="form-row">
         <label>部屋の操作</label>
@@ -295,9 +282,17 @@ input:focus, select:focus { border-color: var(--purple-mid); }
       </div>
       <div class="form-row">
         <label>合言葉</label>
-        <input id="roomKeyInput" placeholder="合言葉を入力">
+        <input type="text" id="roomKeyInput" placeholder="合言葉を入力">
       </div>
       <div id="createSettings">
+        <div class="form-row">
+          <label>ジャンル選択（複数可・未選択で全ジャンル）</label>
+          <div class="genre-select-all-row">
+            <button onclick="selectAllGenres()">全選択</button>
+            <button onclick="clearAllGenres()">全解除</button>
+          </div>
+          <div class="genre-grid" id="genreSelectOnline"></div>
+        </div>
         <div class="form-row">
           <label>出題数</label>
           <div class="radio-group">
@@ -308,6 +303,25 @@ input:focus, select:focus { border-color: var(--purple-mid); }
         </div>
       </div>
       <button class="start-btn" onclick="startOnline()">スタート</button>
+      <div style="text-align:center;"><button class="back-btn" onclick="backToTitle()">← 戻る</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ソロセットアップ -->
+<div id="soloSetupScreen" class="screen">
+  <div style="max-width:560px;margin:0 auto;padding:20px;width:100%;">
+    <div class="setup-card">
+      <h3>一人で特訓 — ジャンル選択</h3>
+      <div class="form-row">
+        <label>ジャンル（複数可・未選択で全ジャンル）</label>
+        <div class="genre-select-all-row">
+          <button onclick="selectAllGenres()">全選択</button>
+          <button onclick="clearAllGenres()">全解除</button>
+        </div>
+        <div class="genre-grid" id="genreSelectSolo"></div>
+      </div>
+      <button class="start-btn" onclick="startSoloGame()">スタート</button>
       <div style="text-align:center;"><button class="back-btn" onclick="backToTitle()">← 戻る</button></div>
     </div>
   </div>
@@ -329,21 +343,19 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 <div id="gameScreen" class="screen">
   <div style="width:100%;">
     <div class="game-header">
-      <div class="game-title"> Quiz Battle</div>
+      <div class="game-title">Quiz Battle</div>
       <div class="badge" id="qNumBadge">Q1</div>
     </div>
-
     <div class="game-main-container">
       <div class="game-left-col">
         <div class="buzz-banner nobody" id="buzzBanner">問題文を読んでいます...</div>
         <div class="question-card">
-          <span class="category-tag" id="onlineCatTag"></span>
-          <div class="question-label" style="color:#b0aad4; font-size:10px;">QUESTION</div>
+          <span id="onlineCatTag" style="font-size:11px;color:var(--purple-mid);font-weight:700;"></span>
+          <div style="color:#b0aad4; font-size:10px;">QUESTION</div>
           <div class="question-text" id="onlineQuestionText"></div>
         </div>
         <div class="action-area" id="actionArea"></div>
       </div>
-
       <div class="game-right-col">
         <div class="players-status-card" id="playersStatusCard"></div>
         <div class="answers-log-card">
@@ -372,7 +384,7 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 <!-- 最終スコア -->
 <div id="finalScreen" class="screen">
   <div class="final-card">
-    <div class="final-title"> 最終結果</div>
+    <div class="final-title">最終結果</div>
     <div id="finalWinnerBadge"></div>
     <table class="final-score-table">
       <thead><tr><th>順位</th><th>名前</th><th>正解数</th></tr></thead>
@@ -390,7 +402,7 @@ input:focus, select:focus { border-color: var(--purple-mid); }
 <div id="soloScreen" class="screen">
   <div style="max-width:640px;margin:0 auto;padding:20px;width:100%;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <div class="game-title" style="font-size:18px;color:white;font-weight:900;"> 一人で特訓</div>
+      <div style="font-size:18px;color:white;font-weight:900;">一人で特訓</div>
       <button class="ghost" style="font-size:12px;padding:6px 14px;border-color:rgba(255,255,255,0.4);color:white;" onclick="backToTitle()">終了</button>
     </div>
     <div class="solo-card">
@@ -399,16 +411,7 @@ input:focus, select:focus { border-color: var(--purple-mid); }
         <div class="solo-life" id="soloLife">❤️❤️❤️</div>
       </div>
       <div class="solo-question-area" id="soloQuestionArea"></div>
-
-      <!-- アクションエリア：早押し前・押した後で切り替え -->
-      <div class="solo-action-area" id="soloActionArea">
-        <!-- 初期状態：早押しボタン＋降参ボタン -->
-        <button class="solo-buzz-btn" id="soloBuzzBtn" onclick="soloPressbuzz()">⚡ 早押し！</button>
-        <div class="solo-surrender-row">
-          <button class="surrender-btn" onclick="soloPressSurrender()">🏳 降参する</button>
-        </div>
-      </div>
-
+      <div class="solo-action-area" id="soloActionArea"></div>
       <div id="soloResultMsg" class="solo-result-msg"></div>
       <button class="solo-retry-btn" id="soloRetryBtn" onclick="soloInitGame()">次の問題へ</button>
     </div>
@@ -444,6 +447,7 @@ window._push = push; window._onDisconnect = onDisconnect;
 
 <script>
 
+ 
 const QUIZ_LIST = [
     { q: "飛鳥時代の政治家で、冠位十二階や十七条憲法を制定し、遣隋使を派遣した人物は誰？", a: ["聖徳太子", "厩戸皇子"], cat: "歴史" },
     { q: "1853年、浦賀に黒船で来航し、日本に開国を要求したアメリカの海軍提督は誰？", a: ["ペリー", "マシュー・ペリー"], cat: "歴史" },
@@ -1104,132 +1108,338 @@ const QUIZ_LIST = [
     { q: "約2億年前、巨大大陸パンゲアを取り囲んでいたとされる「全海洋」の名前は何？", a: ["パンサラッサ"], cat: "地学" },
     { q: "2023年のサウジカップを制した、超ハイペースの逃げでファンを魅了した日本の競走馬の名前は何？", a: ["パンサラッサ"], cat: "スポーツ" },
     { q: "集合Aと集合Bの両方に属する要素をすべて集めた集合のことを、数学用語で何という？", a: ["積集合", "共通部分"], cat: "物理・数学" },
-    { q: "『モザイクロール』や『ヴァンパイア』など、初音ミクを用いた楽曲を数多く発表している人気ボカロPは誰？", a: ["DECO*27", "デコニーナ"], cat: "現代音楽" }
+    { q: "『モザイクロール』や『ヴァンパイア』など、初音ミクを用いた楽曲を数多く発表している人気ボカロPは誰？", a: ["DECO*27", "デコニーナ"], cat: "現代音楽" },
+  { q: "「あれ？声が遅れて聞こえるよ」などのネタで知られる、腹話術師として世界的に高い技術を持つタレントは誰？", a: ["いっこく堂"], cat: "芸能" },
+  { q: "東京大学在学中に『クイズ王』として名を馳せ、現在はクイズノック（QuizKnock）の代表を務めるタレントは誰？", a: ["伊沢拓司"], cat: "芸能" },
+  { q: "「タメになったね〜」という決め台詞とともに、独特な段ボール芸を披露するピン芸人は誰？", a: ["もう中学生"], cat: "芸能" },
+  { q: "1982年から2014年まで、タモリが司会を務め「お昼の顔」として親しまれたフジテレビの生放送番組は何？", a: ["笑っていいとも！"], cat: "芸能" },
+  { q: "ドラマ『カルテット』や『岸辺露伴は動かない』などで主演を務めた、低音ボイスが魅力の実力派俳優は誰？", a: ["高橋一生"], cat: "芸能" },
+  { q: "アイドルグループ「SMAP」のリーダーを務め、現在は数多くのバラエティ番組で司会者として活躍している人物は誰？", a: ["中居正広"], cat: "芸能" },
+  { q: "「空前絶後のぉ！」という絶叫フレーズで知られ、実家がボロ屋であることでも話題となったピン芸人は誰？", a: ["サンシャイン池崎"], cat: "芸能" },
+  { q: "「きょうのわんこ」などのコーナーがあり、フジテレビ系列で放送されている朝の情報番組は何？", a: ["めざましテレビ"], cat: "芸能" },
+  { q: "正式名称を「日本テレビ」といい、『笑点』や『24時間テレビ』などを放送している放送局の略称は何？", a: ["日テレ"], cat: "芸能" },
+  { q: "浜田雅功がMCを務め、様々な「説」を検証するVTRをプレゼンターが紹介するTBSのバラエティ番組は何？", a: ["水曜日のダウンタウン"], cat: "芸能" },
+  { q: "限られたエリアの中でハンターから逃げ切り、賞金獲得を目指すフジテレビの人気バラエティ番組は何？", a: ["逃走中"], cat: "芸能" },
+  { q: "剛と礼二の兄弟によるコンビで、M-1グランプリの初代王者としても知られるお笑いコンビは何？", a: ["中川家"], cat: "芸能" },
+  { q: "石原良純や蓬莱大介などが持つ、気象庁が実施する国家試験に合格した専門家の資格を何という？", a: ["気象予報士"], cat: "芸能" },
+  { q: "「お笑い怪獣」の異名を持ち、『踊る！さんま御殿!!』などの司会を務める国民的タレントは誰？", a: ["明石家さんま"], cat: "芸能" },
+  { q: "1951年に開始され、大晦日の夜にNHKで放送される男女対抗形式の歌番組は何？", a: ["紅白歌合戦", "NHK紅白歌合戦"], cat: "芸能" },
+  { q: "お笑いコンビ「ピース」のボケ担当であり、小説『火花』で芥川賞を受賞した人物は誰？", a: ["又吉直樹"], cat: "文学" },
+  { q: "中田敦彦と藤森慎吾によるコンビで、「武勇伝」のネタや「RADIO FISH」としての活動で知られるのは誰？", a: ["オリエンタルラジオ"], cat: "芸能" },
+  { q: "「明日使えるムダ知識」を募集し、評価に応じて「へぇ」を鳴らす、かつての人気バラエティ番組は何？", a: ["トリビアの泉"], cat: "芸能" },
+  { q: "「ファイブリーグ」や「トロッコアドベンチャー」などのクイズに挑戦する、ネプチューンがMCを務める番組は何？", a: ["ネプリーグ"], cat: "芸能" },
+  { q: "一本の紐の輪を使い、「ほうき」や「二人あや」などの形を指で作って遊ぶ、伝承遊びは何？", a: ["あやとり"], cat: "遊び" },
+  { q: "雪で作った玉を投げ合い、相手チームの旗を取るなどのルールで競う、冬の代表的な遊びは何？", a: ["雪合戦"], cat: "遊び" },
+  { q: "将棋において、自分の駒を相手の王将が効く位置に置き、次に取れる状態にすることを何という？", a: ["王手"], cat: "遊び" },
+  { q: "5枚の手札で役の強さを競う、カジノでも定番のトランプゲームは何？", a: ["ポーカー"], cat: "遊び" },
+  { q: "ポーカーの役の一つで、同じ数字の「3枚組み」と「2枚組み」が揃った状態を何という？", a: ["フルハウス"], cat: "遊び" },
+  { q: "ポーカーの役の一つで、手札の5枚すべてが同じマーク（スート）で揃っている状態を何という？", a: ["フラッシュ"], cat: "遊び" },
+  { q: "キング、クイーン、ナイトなどの駒を使い、白黒の盤上で戦う世界的なボードゲームは何？", a: ["チェス"], cat: "遊び" },
+  { q: "チェスの駒の一つで、前後左右に何マスでも直進でき、お城のような形をした駒は何？", a: ["ルーク"], cat: "遊び" },
+  { q: "チェスにおいて、キングが逃げ場のない攻撃を受け、ゲームが終了することを何という？", a: ["チェックメイト"], cat: "遊び" },
+  { q: "麻雀において、同じ牌を4枚揃えて宣言することで成立する面子（メンツ）を何という？", a: ["槓子", "カンツ"], cat: "遊び" },
+  { q: "麻雀において、自分の番に壁山から引いてきた牌によって、上がりを成立させることを何という？", a: ["ツモ"], cat: "遊び" },
+  { q: "麻雀の役満の一つで、1・9の数牌と字牌の全13種類を揃える難易度の高い役は何？", a: ["国士無双"], cat: "遊び" },
+  { q: "1から100までの数字が書かれたカードを持ち、お題に沿った言葉で数字の大きさを表現して並べるボードゲームは何？", a: ["ito", "イト"], cat: "遊び" },
+  { q: "「はい」か「いいえ」で答えられる質問を繰り返し、不可解な事件の真相を推理する遊びを何という？", a: ["ウミガメのスープ", "水平思考クイズ"], cat: "遊び" },
+  { q: "2つのダイスを振り、4つの駒をゴールへ進める、インドのパチーシを起源とするボードゲームは何？", a: ["ルドー"], cat: "遊び" },
+  { q: "牌に書かれた目の数を合わせて繋げたり、立てて並べて連鎖的に倒したりして遊ぶ道具は何？", a: ["ドミノ"], cat: "遊び" },
+  { q: "ディーラーとの対戦形式で、手札の合計値を「21」を超えないように近づけるトランプゲームは何？", a: ["ブラックジャック"], cat: "遊び" },
+  { q: "「革命」や「8切り」などのルールがあり、カードを早く出し切って階級を上げるトランプゲームは何？", a: ["大富豪", "大貧民"], cat: "遊び" },
+  { q: "麻雀で「あと一つで上がれる状態」を指す「聴牌（テンパイ）」から転じて、余裕を失うことを何という？", a: ["テンパる"], cat: "遊び" },
+{ q: "診断や治療方針について、現在受診している医師以外の医師に意見を求めることを何という？", a: ["セカンドオピニオン"], cat: "医学" },
+  { q: "視力検査で用いられる、アルファベットの「C」のような形をした円環の名称は何？", a: ["ランドルト環"], cat: "医学" },
+  { q: "十二指腸、空腸、回腸の3つの部分からなり、栄養素の吸収の大部分を行う消化管は何？", a: ["小腸"], cat: "医学" },
+  { q: "大脳辺縁系の一部で、短期記憶から長期記憶への定着や、空間学習能力を司る部位は何？", a: ["海馬"], cat: "医学" },
+  { q: "血液の成分のうち、血管が損傷した際に集まって止血する役割を持つ有形成分は何？", a: ["血小板"], cat: "医学" },
+  { q: "第一肋骨の上面にある、ある重要な動脈が通るためにできている溝を何という？", a: ["鎖骨下動脈溝"], cat: "医学" },
+  { q: "生活習慣の乱れなどが原因で、インスリンの効きが悪くなったり分泌量が減ったりするタイプの糖尿病は何？", a: ["Ⅱ型糖尿病", "2型糖尿病"], cat: "医学" },
+  { q: "膵臓の細胞が壊されることでインスリンがほとんど出なくなる、若年層にも多いタイプの糖尿病は何？", a: ["Ⅰ型糖尿病", "1型糖尿病"], cat: "医学" },
+  { q: "18世紀末に牛痘を用いた種痘を開発し、「免疫学の父」と呼ばれるイギリスの医学者は誰？", a: ["ジェンナー"], cat: "医学" },
+  { q: "主に鳥類に感染するA型インフルエンザウイルスによる感染症を何という？", a: ["鳥インフルエンザ"], cat: "医学" },
+  { q: "心臓の脈拍が遅くなる「徐脈」などの治療のため、胸部に植え込んで電気刺激を送る装置は何？", a: ["ペースメーカー"], cat: "医学" },
+  { q: "1897年に日本の志賀潔によって発見された、激しい腹痛や下痢を引き起こす感染症の原因菌は何？", a: ["赤痢菌"], cat: "医学" },
+  { q: "人間の血液型のうち、赤血球にA抗原もB抗原も持たず、血漿中に両方の抗体を持つ型は何型？", a: ["O型"], cat: "医学" },
+  { q: "肺でのガス交換において、血液が取り込むガスは酸素ですが、排出するガスは何？", a: ["二酸化炭素"], cat: "医学" },
+  { q: "腎臓で作られた尿を、一時的に溜めておくための袋状の器官は何？", a: ["膀胱"], cat: "医学" },
+  { q: "骨折した部位を固定するために用いられる、石膏やプラスチック製の硬い包帯を何という？", a: ["ギプス"], cat: "医学" },
+  { q: "大腸の一部で、右下腹部に位置し、炎症を起こすと「盲腸」と俗称される部位の正しい名称は何？", a: ["虫垂"], cat: "医学" },
+  { q: "心臓から送り出された血液が、血管の壁を押す圧力のことを何という？", a: ["血圧"], cat: "医学" },
+  { q: "1928年にフレミングによって発見された、世界初の抗生物質は何？", a: ["ペニシリン"], cat: "医学" },
+  { q: "人間の永久歯は、親知らずを除くと通常全部で何本ある？", a: ["28本"], cat: "医学" },
+  { q: "「シュバイツァー」や「ナイチンゲール」などが宣誓することで知られる、医師の倫理に関する規範を何という？", a: ["ヒポクラテスの誓い"], cat: "医学" },
+  { q: "血液中のヘモグロビンが不足し、全身が酸素欠乏状態になる症状を何という？", a: ["貧血"], cat: "医学" },
+  { q: "耳の奥にあり、体のバランスを保つ「平衡感覚」を司る器官を何という？", a: ["三半規管"], cat: "医学" },
+  { q: "心肺停止の状態に対して、胸骨圧迫や人工呼吸を行う応急処置を漢字4文字で何という？", a: ["心肺蘇生"], cat: "医学" },
+  { q: "医療従事者が患者に対して、治療のメリットやリスクを十分に説明し、同意を得ることを何という？", a: ["インフォームド・コンセント"], cat: "医学" },
+  { q: "眼球の中でレンズの役割を果たし、ピント調節を行う部位は何？", a: ["水晶体"], cat: "医学" },
+  { q: "蚊が媒介し、高熱や頭痛を引き起こす感染症で、かつては「三日熱」などとも呼ばれたのは何？", a: ["マラリア"], cat: "医学" },
+  { q: "体温を調節する司令塔の役割を果たしている、脳の視床下部にある部位は何？", a: ["体温調節中枢"], cat: "医学" },
+  { q: "血圧を測定する際、数値が高い方の血圧を「収縮期血圧」といいますが、低い方は何という？", a: ["拡張期血圧"], cat: "医学" },
+  { q: "肝臓で作られ、脂肪の消化を助ける役割を持つ黄褐色の液体は何？", a: ["胆汁"], cat: "医学" },
+  { q: "人間の脊椎（背骨）のうち、首の部分を構成する7個の骨を何という？", a: ["頸椎"], cat: "医学" },
+  { q: "薬効成分が含まれていないが、心理的な効果によって症状が改善することを「何効果」という？", a: ["プラセボ効果", "偽薬効果"], cat: "医学" },
+{ q: "バイオリンよりも一回り大きく、深みのある低音が特徴の、座って両膝の間に挟んで演奏する弦楽器は何？", a: ["チェロ"], cat: "古典音楽・楽器" },
+  { q: "木製の鍵盤をマレットで叩いて演奏する、大型の木琴の一種は何？", a: ["マリンバ"], cat: "古典音楽・楽器" },
+  { q: "カタツムリのような形をした管を持ち、右手をベルの中に入れて音色を調節する金管楽器は何？", a: ["ホルン"], cat: "古典音楽・楽器" },
+  { q: "スライドを伸縮させて音程を変えることが最大の特徴である金管楽器は何？", a: ["トロンボーン"], cat: "古典音楽・楽器" },
+  { q: "竹の根元を用いて作られる、日本の代表的な縦笛は何？", a: ["尺八"], cat: "古典音楽・楽器" },
+  { q: "沖縄県や奄美群島で用いられる、蛇の皮を張った3本の弦を持つ弦楽器は何？", a: ["三線"], cat: "古典音楽・楽器" },
+  { q: "大小2つの太鼓が連結された、指や手のひらで叩いて演奏するキューバ発祥の打楽器は何？", a: ["ボンゴ"], cat: "古典音楽・楽器" },
+  { q: "アンデス地方のフォルクローレに使われる、上部にU字型の切り込みが入った縦笛は何？", a: ["ケーナ"], cat: "古典音楽・楽器" },
+  { q: "イタリア語で「ガチョウの子」という意味がある、土を焼いて作られる涙滴型の笛は何？", a: ["オカリナ"], cat: "古典音楽・楽器" },
+  { q: "ギターなどの指板にある、音程を区切るための金属製の突起を何という？", a: ["フレット"], cat: "古典音楽・楽器" },
+  { q: "高音部譜表の最初に書かれる、G音の位置を示す記号は何？", a: ["ト音記号"], cat: "古典音楽・楽器" },
+  { q: "ある音から、周波数が2倍（または半分）になる8度上の音までの間隔を何という？", a: ["オクターブ"], cat: "古典音楽・楽器" },
+  { q: "1枚のリードを用いて演奏される、黒い管体が特徴の木管楽器は何？", a: ["クラリネット"], cat: "古典音楽・楽器" },
+  { q: "2枚のリードを用いて演奏される、哀愁を帯びた音色が特徴の高音域木管楽器は何？", a: ["オーボエ"], cat: "古典音楽・楽器" },
+  { q: "強弱記号の「pp」の読み方で、「ごく弱く」を意味するイタリア語は何？", a: ["ピアニッシモ"], cat: "古典音楽・楽器" },
+  { q: "「歩くような速さで」という意味がある速度記号は何？", a: ["アンダンテ"], cat: "古典音楽・楽器" },
+  { q: "「ゆるやかに」という意味がある、速度記号の中でも特に遅い指示は何？", a: ["レント"], cat: "古典音楽・楽器" },
+  { q: "「だんだん遅く」という意味がある速度記号は何？", a: ["リタルダンド"], cat: "古典音楽・楽器" },
+  { q: "「だんだん強く」という意味がある強弱記号は何？", a: ["クレシェンド"], cat: "古典音楽・楽器" },
+  { q: "「だんだん弱く」という意味がある強弱記号は何？", a: ["デクレシェンド"], cat: "古典音楽・楽器" },
+  { q: "音符の上下に書かれる「延長記号」で、その音を十分に伸ばすことを指示する記号は何？", a: ["フェルマータ"], cat: "古典音楽・楽器" },
+  { q: "隣り合う同じ高さの音符をつなぎ、一つの音として継続させる弧線のことを何という？", a: ["タイ"], cat: "古典音楽・楽器" },
+  { q: "変化した音を元の高さに戻すことを指示する「本位記号」は何？", a: ["ナチュラル"], cat: "古典音楽・楽器" },
+  { q: "「交響曲の父」と呼ばれ、100曲以上の交響曲を残したオーストリアの作曲家は誰？", a: ["ハイドン"], cat: "古典音楽・楽器" },
+  { q: "楽劇『ニーベルングの指環』などの巨大なオペラ作品で知られるドイツの作曲家は誰？", a: ["ワーグナー"], cat: "古典音楽・楽器" },
+  { q: "『ベルガマスク組曲』や『海』などで知られる、フランス印象主義音楽の代表的作曲家は誰？", a: ["ドビュッシー"], cat: "古典音楽・楽器" },
+  { q: "『未完成交響曲』や『魔王』などの歌曲で知られる、「歌曲の王」と称される作曲家は誰？", a: ["シューベルト"], cat: "古典音楽・楽器" },
+  { q: "「無調音楽」や「十二音技法」を確立した、20世紀を代表するオーストリアの作曲家は誰？", a: ["シェーンベルク"], cat: "古典音楽・楽器" },
+  { q: "バッハ、ベートーヴェンと共に「ドイツ三B」の一人に数えられる、4つの交響曲を残した作曲家は誰？", a: ["ブラームス"], cat: "古典音楽・楽器" },
+  { q: "ハイドン、モーツァルト、シューベルトなど多くの音楽家を輩出し、ウィーンを首都に持つ国はどこ？", a: ["オーストリア"], cat: "古典音楽・楽器" },
+  { q: "「タンゴ」の発祥の地として知られる、ブエノスアイレスを首都とする南米の国はどこ？", a: ["アルゼンチン"], cat: "古典音楽・楽器" },
+  { q: "「フラメンコ」や、ギター曲『アルハンブラの思い出』などで知られるヨーロッパの国はどこ？", a: ["スペイン"], cat: "古典音楽・楽器" },
+  { q: "オーケストラの演奏開始前に、オーボエが吹く「ラ（A）」の音に合わせて各楽器が行う調整を何という？", a: ["チューニング"], cat: "古典音楽・楽器" },
+  { q: "ピアノの正式名称は何？", a: ["ピアノフォルテ"], cat: "古典音楽・楽器" },
+  { q: "弦楽器の弓の毛に塗る、滑り止めのための固形物は？", a: ["松脂", "まつやに"], cat: "古典音楽・楽器" },
+  { q: "イタリア語で「空」という意味がある、独唱用の歌唱曲を何という？", a: ["アリア"], cat: "古典音楽・楽器" },
+  { q: "オーケストラの全体練習を指揮する際などに使われる、演奏者全員分の譜面が書かれた楽譜を何という？", a: ["スコア", "総譜"], cat: "古典音楽・楽器" },
+  { q: "バイオリン、ビオラ、チェロ、コントラバスの中で、最も低い音域を担当する楽器は何？", a: ["コントラバス"], cat: "古典音楽・楽器" },
+  { q: "金管楽器において、音を小さくしたり音色を変えたりするためにベルに装着する器具を何という？", a: ["ミュート", "弱音器"], cat: "古典音楽・楽器" },
+{ q: "「弟子が師匠よりも優れること」を、「青は何より出でて藍より青し」という？", a: ["藍", "青は藍より出でて藍より青し"], cat: "国語" },
+  { q: "「自分のことで精一杯で、他人の面倒を見る余裕がないこと」を、「頭の上の何も追えぬ」という？", a: ["蝿", "ハエ", "頭の上の蝿も追えぬ"], cat: "国語" },
+  { q: "時期を失してしまって、後悔しても間に合わないことを「後の何」という？", a: ["祭り", "後の祭り"], cat: "国語" },
+  { q: "他人に養生を勧めながら、自分は不摂生であることを「何の不養生」という？", a: ["医者", "医者の不養生"], cat: "国語" },
+  { q: "何事も命が一番大切であり、死んでしまっては元も子もないことを「命あっての何」という？", a: ["物種", "命あっての物種"], cat: "国語" },
+  { q: "口に出して言わないほうが、かえって趣や味わいがあることを「言わぬが何」という？", a: ["花", "言わぬが花"], cat: "国語" },
+  { q: "思いがけないことがきっかけで、良い方向に導かれることを「牛に引かれて何参り」という？", a: ["善光寺", "牛に引かれて善光寺参り"], cat: "国語" },
+  { q: "冗談で言ったことが、偶然にも事実になってしまうことを「嘘から出た何」という？", a: ["まこと", "嘘から出たまこと"], cat: "国語" },
+  { q: "物事がすんなり運ばず、事情が複雑に絡み合っていることを漢字4文字で何という？", a: ["紆余曲折"], cat: "国語" },
+  { q: "比較にならないほど大きな隔たりがあることを「何の差」という？", a: ["雲泥", "雲泥の差"], cat: "国語" },
+  { q: "古いものを研究し、そこから新しい知識や見解を得ることを漢字4文字で何という？", a: ["温故知新"], cat: "国語" },
+  { q: "他人のことを考えず、自分に都合の良いように物事を進めることを漢字4文字で何という？", a: ["我田引水"], cat: "国語" },
+  { q: "一歩間違えれば大変なことになる、非常に危険な状況を「何の刃を渡る」という？", a: ["剃刀", "かみそり", "剃刀の刃を渡る"], cat: "国語" },
+  { q: "我慢の限界を超えて怒りが爆発することを「何の緒が切れる」という？", a: ["堪忍袋", "堪忍袋の緒が切れる"], cat: "国語" },
+  { q: "絶体絶命の窮地に追い込まれれば、弱者も強者に反撃することを「何猫を噛む」という？", a: ["窮鼠", "窮鼠猫を噛む"], cat: "国語" },
+  { q: "月日が経つのが非常に早いことを例えて「何矢の如し」という？", a: ["光陰", "光陰矢の如し"], cat: "国語" },
+  { q: "詩や文章を何度も練り直し、より良く書き直すことを何という？", a: ["推敲"], cat: "国語" },
+  { q: "千年に一度しか会えないような、滅多にない絶好の機会を漢字4文字で何という？", a: ["千載一遇"], cat: "国語" },
+  { q: "全く手応えや効果がないことを、建築用具に例えて「何にかすがい」という？", a: ["豆腐", "豆腐にかすがい"], cat: "国語" },
+  { q: "信頼していた人から裏切られ、ひどい目に遭わされることを「何を飲まされる」という？", a: ["煮え湯", "煮え湯を飲まされる"], cat: "国語" },
+  { q: "本来は「前人未到の境地を切り開く」という意味だが、現在は「型破り」な意味で使われる言葉は何？", a: ["破天荒"], cat: "国語" },
+  { q: "一度偶然に幸運を得たからといって、次も同じようにいくとは限らないことを「柳の下にいつも何はおらぬ」という？", a: ["どじょう", "柳の下にどじょうはおらぬ"], cat: "国語" },
+  { q: "悪いことが起きている時に、さらに災難が重なることを「弱り目に何」という？", a: ["祟り目", "弱り目に祟り目"], cat: "国語" }
+
 ];
 
+ 
+  
+  
 
+const ALL_GENRES = [
+  "歴史","地理","化学","物理・数学","地学",
+  "古典","文学","国語","政治・経済",
+  "アニメ・映画","動物","植物","医学",
+  "芸能","スポーツ","美術",
+  "古典音楽・楽器","現代音楽",
+  "遊び","ゲーム","情報・IT",
+  "ノンジャンル","料理","企業"
+];
 
-/* ===== グローバル ===== */
+let selectedGenres = []; // 選択中のジャンル（空 = 全ジャンル）
+
+/**
+ * ジャンルチップを描画する
+ * containerId: "genreSelectOnline" または "genreSelectSolo"
+ */
+function renderGenreChips(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  ALL_GENRES.forEach(g => {
+    const chip = document.createElement('span');
+    chip.className = 'genre-chip' + (selectedGenres.includes(g) ? ' selected' : '');
+    chip.textContent = g;
+    chip.addEventListener('click', function() {
+      if (selectedGenres.includes(g)) {
+        selectedGenres = selectedGenres.filter(x => x !== g);
+        chip.classList.remove('selected');
+      } else {
+        selectedGenres.push(g);
+        chip.classList.add('selected');
+      }
+      // もう片方の画面も同期
+      syncChips();
+    });
+    container.appendChild(chip);
+  });
+}
+
+/** 両方のジャンル選択UIの選択状態を同期 */
+function syncChips() {
+  ['genreSelectOnline', 'genreSelectSolo'].forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.querySelectorAll('.genre-chip').forEach(chip => {
+      if (selectedGenres.includes(chip.textContent)) {
+        chip.classList.add('selected');
+      } else {
+        chip.classList.remove('selected');
+      }
+    });
+  });
+}
+
+function selectAllGenres() {
+  selectedGenres = [...ALL_GENRES];
+  syncChips();
+}
+
+function clearAllGenres() {
+  selectedGenres = [];
+  syncChips();
+}
+
+/* ===== 問題フィルタ・選択 ===== */
+function getFilteredList() {
+  if (selectedGenres.length === 0) return QUIZ_LIST;
+  return QUIZ_LIST.filter(q => selectedGenres.includes(q.cat));
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function selectQuestions(count) {
+  const pool = getFilteredList();
+  const src = pool.length > 0 ? pool : QUIZ_LIST;
+  return shuffleArray(src).slice(0, Math.min(count, src.length));
+}
+
+let usedIndicesSolo = [];
+function pickSoloQuestion() {
+  const pool = getFilteredList();
+  const src = pool.length > 0 ? pool : QUIZ_LIST;
+  let available = src.filter(q => !usedIndicesSolo.includes(QUIZ_LIST.indexOf(q)));
+  if (available.length === 0) { usedIndicesSolo = []; available = src; }
+  const q = available[Math.floor(Math.random() * available.length)];
+  usedIndicesSolo.push(QUIZ_LIST.indexOf(q));
+  return q;
+}
+
+/* ===================================================
+   画面制御
+=================================================== */
 let myName = '', roomKey = '', myId = '';
 let isHost = false;
 let players = {};
 let roomUnsubscribe = null;
 let totalQuestions = 10;
 let charRevealInterval = null;
-let usedIndicesOnline = [];
-let usedIndicesSolo = [];
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
-}
-function selectQuestions(count) {
-  let available = QUIZ_LIST.map((_, i) => i).filter(i => !usedIndicesOnline.includes(i));
-  if (available.length < count) { usedIndicesOnline = []; available = QUIZ_LIST.map((_, i) => i); }
-  let selectedIndices = shuffleArray(available).slice(0, count);
-  usedIndicesOnline.push(...selectedIndices);
-  return selectedIndices.map(i => QUIZ_LIST[i]);
-}
 
 /* ===== タイトル ===== */
 function showOnlineSetup() {
   document.getElementById('modeSelect').style.display = 'none';
   document.getElementById('onlineSetup').style.display = 'block';
+  renderGenreChips('genreSelectOnline');
 }
+
+function showSoloSetup() {
+  showScreen('soloSetupScreen');
+  renderGenreChips('genreSelectSolo');
+}
+
+function startSoloGame() {
+  showScreen('soloScreen');
+  soloInitGame();
+}
+
 function backToTitle() {
   if (roomUnsubscribe) { roomUnsubscribe(); roomUnsubscribe = null; }
   stopCharReveal();
-  soloStopReveal(); // ソロのタイマーも止める
+  soloStopReveal();
   document.getElementById('resultOverlay').classList.remove('show');
   document.getElementById('modeSelect').style.display = 'block';
   document.getElementById('onlineSetup').style.display = 'none';
   showScreen('titleScreen');
 }
+
 function toggleRoomAction(action) {
   document.getElementById('createSettings').style.display = action === 'create' ? 'block' : 'none';
 }
 
 /* ===================================================
-   一人で特訓モード（早押し形式に改修）
+   ソロモード
 =================================================== */
 let soloQuiz = {};
 let soloDisplayIndex = 0;
 let soloLives = 3;
-let soloRevealInterval = null;  // 自動文字出しタイマー
-let soloBuzzed = false;         // 早押し済みフラグ
-let soloFinished = false;       // 問題終了フラグ
-
-function showSoloMode() {
-  showScreen('soloScreen');
-  soloInitGame();
-}
+let soloRevealInterval = null;
+let soloBuzzed = false;
+let soloFinished = false;
 
 function soloInitGame() {
-  // 未出題の問題番号を抽出
-  let available = QUIZ_LIST.map((_, i) => i).filter(i => !usedIndicesSolo.includes(i));
-  if (available.length === 0) { usedIndicesSolo = []; available = QUIZ_LIST.map((_, i) => i); }
-  let randomIndex = available[Math.floor(Math.random() * available.length)];
-  usedIndicesSolo.push(randomIndex);
-  soloQuiz = QUIZ_LIST[randomIndex];
-
+  soloQuiz = pickSoloQuestion();
   soloDisplayIndex = 1;
   soloLives = 3;
   soloBuzzed = false;
   soloFinished = false;
-
-  document.getElementById('soloAnswerInput') && document.getElementById('soloAnswerInput').remove && true;
   document.getElementById('soloCatTag').textContent = soloQuiz.cat;
   updateSoloLife();
   document.getElementById('soloResultMsg').textContent = '';
   document.getElementById('soloResultMsg').className = 'solo-result-msg';
   document.getElementById('soloRetryBtn').style.display = 'none';
-
-  // アクションエリアを「早押しボタン＋降参」に戻す
   renderSoloBuzzState();
-
-  // 問題文表示エリアをリセット
   document.getElementById('soloQuestionArea').textContent = soloQuiz.q.substring(0, 1);
-
-  // 自動文字出し開始
   soloStartReveal();
 }
 
-/** 自動文字出しタイマー開始 */
 function soloStartReveal() {
   soloStopReveal();
-  if (soloDisplayIndex >= soloQuiz.q.length) return;
   soloRevealInterval = setInterval(() => {
     if (soloBuzzed || soloFinished) { soloStopReveal(); return; }
     if (soloDisplayIndex < soloQuiz.q.length) {
       soloDisplayIndex++;
       document.getElementById('soloQuestionArea').textContent = soloQuiz.q.substring(0, soloDisplayIndex);
-    } else {
-      soloStopReveal();
-    }
+    } else { soloStopReveal(); }
   }, 750);
 }
 
-/** 自動文字出しタイマー停止 */
 function soloStopReveal() {
   if (soloRevealInterval) { clearInterval(soloRevealInterval); soloRevealInterval = null; }
 }
 
-/** 早押し前の表示：早押しボタン＋降参ボタン */
 function renderSoloBuzzState() {
   document.getElementById('soloActionArea').innerHTML = `
-    <button class="solo-buzz-btn" id="soloBuzzBtn" onclick="soloPressbuzz()">⚡ 早押し！</button>
+    <button class="solo-buzz-btn" onclick="soloPressbuzz()">⚡ 早押し！</button>
     <div class="solo-surrender-row">
       <button class="surrender-btn" onclick="soloPressSurrender()">🏳 降参する</button>
     </div>`;
 }
 
-/** 早押し後の表示：回答入力欄 */
 function renderSoloAnswerState() {
   document.getElementById('soloActionArea').innerHTML = `
     <div class="solo-answer-card">
@@ -1241,82 +1451,51 @@ function renderSoloAnswerState() {
     </div>`;
   setTimeout(() => {
     const inp = document.getElementById('soloAnswerInput');
-    if (inp) {
-      inp.focus();
-      inp.addEventListener('keydown', e => { if (e.key === 'Enter') soloCheckAnswer(); });
-    }
+    if (inp) { inp.focus(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') soloCheckAnswer(); }); }
   }, 50);
 }
 
-/** 早押しボタンが押されたとき */
 function soloPressbuzz() {
   if (soloBuzzed || soloFinished) return;
   soloBuzzed = true;
-  soloStopReveal(); // 文字出し停止（表示はその時点のまま）
+  soloStopReveal();
   renderSoloAnswerState();
 }
 
-/** 降参ボタン */
 function soloPressSurrender() {
   if (soloFinished) return;
   soloStopReveal();
   soloEndGame(false, true);
 }
 
-/** 回答チェック */
 function soloCheckAnswer() {
   const inp = document.getElementById('soloAnswerInput');
   if (!inp) return;
   const ans = inp.value.trim();
   if (!ans) return;
-
-  if (soloQuiz.a.includes(ans)) {
-    soloEndGame(true);
-    return;
-  }
-
-  // 不正解
+  if (soloQuiz.a.includes(ans)) { soloEndGame(true); return; }
   soloLives--;
   updateSoloLife();
   const card = document.querySelector('.solo-card');
   card.classList.add('shake');
   setTimeout(() => card.classList.remove('shake'), 400);
-
-  if (soloLives <= 0) {
-    soloEndGame(false);
-    return;
-  }
-
-  // 不正解でライフ残あり → 早押し状態をリセットして文字出し再開
-  const msg = document.getElementById('soloResultMsg');
-  msg.textContent = `❌ 不正解！残り ${soloLives} 回`;
-  msg.className = 'solo-result-msg error';
-
+  if (soloLives <= 0) { soloEndGame(false); return; }
+  document.getElementById('soloResultMsg').textContent = `❌ 不正解！残り ${soloLives} 回`;
+  document.getElementById('soloResultMsg').className = 'solo-result-msg error';
   soloBuzzed = false;
-  renderSoloBuzzState(); // 早押しボタンを復活
-  soloStartReveal();     // 文字出し再開
+  renderSoloBuzzState();
+  soloStartReveal();
 }
 
-/** ゲーム終了 */
 function soloEndGame(isWin, isSurrender = false) {
   soloFinished = true;
   soloStopReveal();
-  // 問題文を全表示
   document.getElementById('soloQuestionArea').textContent = soloQuiz.q;
-  // アクションエリアを無効化
   document.getElementById('soloActionArea').innerHTML = '';
-
   const msg = document.getElementById('soloResultMsg');
-  if (isWin) {
-    msg.textContent = `✅ 正解！ 答えは「${soloQuiz.a[0]}」でした。`;
-    msg.className = 'solo-result-msg success';
-  } else if (isSurrender) {
-    msg.textContent = `🏳 降参！ 正解は「${soloQuiz.a[0]}」でした。`;
-    msg.className = 'solo-result-msg error';
-  } else {
-    msg.textContent = `❌ 残念！ 正解は「${soloQuiz.a[0]}」でした。`;
-    msg.className = 'solo-result-msg error';
-  }
+  if (isWin) { msg.textContent = `✅ 正解！ 答えは「${soloQuiz.a[0]}」でした。`; msg.className = 'solo-result-msg success'; }
+  else if (isSurrender) { msg.textContent = `🏳 降参！ 正解は「${soloQuiz.a[0]}」でした。`; msg.className = 'solo-result-msg error'; }
+  else { msg.textContent = `❌ 残念！ 正解は「${soloQuiz.a[0]}」でした。`; msg.className = 'solo-result-msg error'; }
   document.getElementById('soloRetryBtn').style.display = 'block';
 }
 
@@ -1324,7 +1503,9 @@ function updateSoloLife() {
   document.getElementById('soloLife').textContent = '❤️'.repeat(soloLives) + '🖤'.repeat(3 - soloLives);
 }
 
-/* ===== オンライン ===== */
+/* ===================================================
+   オンラインモード
+=================================================== */
 function startOnline() {
   if (!window._db) { alert('初期化中です'); return; }
   myName = document.getElementById('playerName').value.trim();
@@ -1397,10 +1578,10 @@ function listenRoom() {
     const d = snap.val();
     if (!d) return;
     players = d.players || {};
-    if (d.phase === 'waiting')  { updateWaitingList(d); return; }
-    if (d.phase === 'playing')  { showScreen('gameScreen'); document.getElementById('resultOverlay').classList.remove('show'); updateGameScreen(d); return; }
-    if (d.phase === 'result')   { showScreen('gameScreen'); showResultOverlay(d); return; }
-    if (d.phase === 'final')    { document.getElementById('resultOverlay').classList.remove('show'); showFinalScreen(d); return; }
+    if (d.phase === 'waiting') { updateWaitingList(d); return; }
+    if (d.phase === 'playing') { showScreen('gameScreen'); document.getElementById('resultOverlay').classList.remove('show'); updateGameScreen(d); return; }
+    if (d.phase === 'result') { showScreen('gameScreen'); showResultOverlay(d); return; }
+    if (d.phase === 'final') { document.getElementById('resultOverlay').classList.remove('show'); showFinalScreen(d); return; }
   });
 }
 
@@ -1419,28 +1600,22 @@ function updateGameScreen(d) {
   const qs = d.questions || [];
   if (qi >= qs.length) return;
   const q = qs[qi];
-
   document.getElementById('qNumBadge').textContent = `Q${qi + 1} / ${qs.length}`;
   document.getElementById('onlineCatTag').textContent = q.cat || '';
-
   const revealIdx = d.revealIndex || 1;
   document.getElementById('onlineQuestionText').textContent = q.q.substring(0, revealIdx);
-
   const buzzer = d.buzzerId || '';
   const resting = d.resting || {};
   const locked = d.locked || {};
   const surrendered = d.surrendered || {};
   const isBuzzerMe = buzzer === myId;
-
   const banner = document.getElementById('buzzBanner');
   if (!buzzer) { banner.className = 'buzz-banner nobody'; banner.textContent = '問題文を読んでいます...'; }
-  else if (isBuzzerMe) { banner.className = 'buzz-banner me'; banner.textContent = ' あなたが早押し！'; }
-  else { const bn = players[buzzer]?.name || buzzer; banner.className = 'buzz-banner other'; banner.textContent = ` ${bn} が早押し！！`; }
-
+  else if (isBuzzerMe) { banner.className = 'buzz-banner me'; banner.textContent = 'あなたが早押し！'; }
+  else { const bn = players[buzzer]?.name || buzzer; banner.className = 'buzz-banner other'; banner.textContent = `${bn} が早押し！！`; }
   updatePlayerStatusBoxes(d, q);
   renderActionArea(d, q, buzzer, resting, locked, surrendered, isBuzzerMe);
   updateAnswersLog(d, q);
-
   if (isHost && !d.revealStopped && revealIdx < q.q.length) {
     if (!charRevealInterval) {
       charRevealInterval = setInterval(() => {
@@ -1455,7 +1630,6 @@ function updateGameScreen(d) {
       }, 750);
     }
   } else if (d.revealStopped || revealIdx >= q.q.length) { stopCharReveal(); }
-
   if (isHost) {
     const pIds = Object.keys(players);
     const allSurrendered = pIds.length > 0 && pIds.every(id => surrendered[id]);
@@ -1468,13 +1642,11 @@ function updateGameScreen(d) {
 function renderActionArea(d, q, buzzer, resting, locked, surrendered, isBuzzerMe) {
   const area = document.getElementById('actionArea');
   const myResting = resting[myId];
-  const myLocked = locked[myId];
   const mySurrendered = surrendered[myId];
-
   if (mySurrendered) { area.innerHTML = `<div class="surrendered-notice">🏳️ 降参しました。他の人の結果を待っています...</div>`; return; }
   if (myResting) { area.innerHTML = `<div class="locked-notice">🔒 不正解... 相手の結果を待っています</div>`; return; }
   if (isBuzzerMe) {
-    area.innerHTML = `<div class="answer-card"><div style="font-size:13px;color:var(--green);font-weight:700;margin-bottom:8px;"> 回答してください</div><div class="answer-input-row"><input id="onlineAnswerInput" placeholder="答えを入力..." maxlength="30" autocomplete="off"><button onclick="submitOnlineAnswer()">回答</button></div></div>`;
+    area.innerHTML = `<div class="answer-card"><div style="font-size:13px;color:var(--green);font-weight:700;margin-bottom:8px;">回答してください</div><div class="answer-input-row"><input id="onlineAnswerInput" placeholder="答えを入力..." maxlength="30" autocomplete="off"><button onclick="submitOnlineAnswer()">回答</button></div></div>`;
     setTimeout(() => {
       const inp = document.getElementById('onlineAnswerInput');
       if (inp) { inp.focus(); inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitOnlineAnswer(); }); }
@@ -1482,10 +1654,10 @@ function renderActionArea(d, q, buzzer, resting, locked, surrendered, isBuzzerMe
     return;
   }
   if (buzzer) { const bn = players[buzzer]?.name || buzzer; area.innerHTML = `<div class="waiting-answer-notice">⏳ ${bn} が回答中... 待ってください</div>`; return; }
-  const canBuzz = !myResting && !myLocked;
+  const canBuzz = !myResting && !locked[myId];
   area.innerHTML = `
-    <button class="buzz-btn" id="buzzBtn" onclick="pressBuzz()" ${canBuzz ? '' : 'disabled'}> 早押し！</button>
-    <div class="surrender-row"><button class="surrender-btn" onclick="pressSurrender()"> 降参する</button></div>`;
+    <button class="buzz-btn" id="buzzBtn" onclick="pressBuzz()" ${canBuzz ? '' : 'disabled'}>⚡ 早押し！</button>
+    <div class="surrender-row"><button class="surrender-btn" onclick="pressSurrender()">🏳 降参する</button></div>`;
 }
 
 function updatePlayerStatusBoxes(d, q) {
@@ -1511,17 +1683,15 @@ function updateAnswersLog(d, q) {
   const entries = [];
   Object.entries(answers).forEach(([id, ans]) => {
     if (!ans) return;
-    const isCorrect = q.a.includes(ans);
-    entries.push({ name: players[id]?.name || id, ans, isCorrect, isSurrender: false });
+    entries.push({ name: players[id]?.name || id, ans, isCorrect: q.a.includes(ans), isSurrender: false });
   });
   Object.keys(surrendered).forEach(id => {
-    if (surrendered[id] && !answers[id]) entries.push({ name: players[id]?.name || id, ans: '降参', isSurrender: true });
+    if (surrendered[id] && !answers[id]) entries.push({ name: players[id]?.name || id, isSurrender: true });
   });
   if (entries.length === 0) { container.innerHTML = '<div style="font-size:12px;color:var(--gray-mid);">まだ回答はありません</div>'; return; }
   container.innerHTML = entries.map(e => {
     if (e.isSurrender) return `<div class="answer-log-row"><span class="log-name">${e.name}</span><span class="log-ans">🏳 降参</span><span class="log-mark"></span></div>`;
-    const mark = e.isCorrect ? '⭕' : '❌';
-    return `<div class="answer-log-row"><span class="log-name">${e.name}</span><span class="log-ans">「${e.ans}」</span><span class="log-mark">${mark}</span></div>`;
+    return `<div class="answer-log-row"><span class="log-name">${e.name}</span><span class="log-ans">「${e.ans}」</span><span class="log-mark">${e.isCorrect ? '⭕' : '❌'}</span></div>`;
   }).join('');
 }
 
@@ -1530,8 +1700,7 @@ function pressBuzz() {
   if (btn) btn.disabled = true;
   window._get(window._ref(window._db, `quiz_rooms/${roomKey}`)).then(snap => {
     const d = snap.val();
-    if (!d || d.phase !== 'playing') return;
-    if (d.buzzerId) return;
+    if (!d || d.phase !== 'playing' || d.buzzerId) return;
     if (d.resting?.[myId] || d.locked?.[myId] || d.surrendered?.[myId]) return;
     window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { buzzerId: myId, revealStopped: true });
   });
@@ -1551,11 +1720,9 @@ function submitOnlineAnswer() {
   window._get(window._ref(window._db, `quiz_rooms/${roomKey}`)).then(snap => {
     const d = snap.val();
     if (!d || d.phase !== 'playing') return;
-    const qi = d.currentQIndex || 0;
-    const q = d.questions?.[qi];
+    const q = d.questions?.[d.currentQIndex || 0];
     if (!q) return;
-    const isCorrect = q.a.includes(ans);
-    if (isCorrect) {
+    if (q.a.includes(ans)) {
       const newScore = (players[myId]?.score || 0) + 1;
       window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { [`answers/${myId}`]: ans, [`players/${myId}/score`]: newScore, phase: 'result' });
     } else {
@@ -1569,8 +1736,7 @@ function submitOnlineAnswer() {
 
 function showResultOverlay(d) {
   stopCharReveal();
-  const qi = d.currentQIndex || 0;
-  const q = d.questions?.[qi];
+  const q = d.questions?.[d.currentQIndex || 0];
   if (!q) return;
   document.getElementById('resultQuestionFull').textContent = `問題：${q.q}`;
   const answers = d.answers || {};
@@ -1578,30 +1744,25 @@ function showResultOverlay(d) {
   const correctIds = pIds.filter(id => answers[id] && q.a.includes(answers[id]));
   const myCorrect = q.a.includes(answers[myId]);
   let statusText;
-if (myCorrect) {
-  statusText = '正解！';
-} else if (correctIds.length > 0) {
-  statusText = `${players[correctIds[0]]?.name || correctIds[0]} が正解`;
-} else if (Object.keys(d.surrendered || {}).length === Object.keys(players).length) {
-  statusText = '全員降参...';
-} else {
-  statusText = '全員不正解...';
-}
-document.getElementById('resultStatus').textContent = statusText;
+  if (myCorrect) { statusText = '正解！'; }
+  else if (correctIds.length > 0) { statusText = `${players[correctIds[0]]?.name || correctIds[0]} が正解`; }
+  else if (Object.keys(d.surrendered || {}).length === pIds.length) { statusText = '全員降参...'; }
+  else { statusText = '全員不正解...'; }
+  document.getElementById('resultStatus').textContent = statusText;
   document.getElementById('resultStatus').className = 'result-status ' + (myCorrect ? 'success' : 'fail');
   document.getElementById('resultAnswer').textContent = `答え：「${q.a[0]}」`;
-  document.getElementById('resultWinner').textContent = correctIds.length > 0 ? `正解者：${correctIds.map(id => players[id]?.name || id).join('、')} ` : '今回は全員不正解でした';
-  const scoresHtml = [...pIds].sort((a, b) => (players[b]?.score || 0) - (players[a]?.score || 0)).map(id => `<div class="result-score-row"><span class="result-score-name">${players[id]?.name || id}</span><span class="result-score-num">${players[id]?.score || 0}点</span></div>`).join('');
+  document.getElementById('resultWinner').textContent = correctIds.length > 0 ? `正解者：${correctIds.map(id => players[id]?.name || id).join('、')}` : '今回は全員不正解でした';
+  const scoresHtml = [...pIds].sort((a, b) => (players[b]?.score || 0) - (players[a]?.score || 0))
+    .map(id => `<div class="result-score-row"><span class="result-score-name">${players[id]?.name || id}</span><span class="result-score-num">${players[id]?.score || 0}点</span></div>`).join('');
   document.getElementById('resultScores').innerHTML = scoresHtml;
   const nextBtn = document.getElementById('nextQuestionBtn');
   nextBtn.disabled = false; nextBtn.textContent = '次の問題へ';
   document.getElementById('resultWaiting').textContent = '';
   document.getElementById('resultOverlay').classList.add('show');
-  if (isHost && d.nextReady) { if (pIds.every(id => d.nextReady[id])) { proceedToNext(d); return; } }
+  if (isHost && d.nextReady && pIds.every(id => d.nextReady[id])) { proceedToNext(d); return; }
   if (d.nextReady?.[myId]) {
     nextBtn.disabled = true; nextBtn.textContent = '待機中...';
-    const cnt = Object.values(d.nextReady).filter(Boolean).length;
-    document.getElementById('resultWaiting').textContent = `${cnt} / ${pIds.length} 人が準備完了`;
+    document.getElementById('resultWaiting').textContent = `${Object.values(d.nextReady).filter(Boolean).length} / ${pIds.length} 人が準備完了`;
   }
 }
 
@@ -1615,8 +1776,11 @@ function proceedToNext(d) {
   if (!isHost) return;
   const qi = d.currentQIndex || 0;
   const total = d.questions?.length || totalQuestions;
-  if (qi + 1 >= total) { window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { phase: 'final' }); }
-  else { window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { phase: 'playing', currentQIndex: qi + 1, revealIndex: 1, revealStopped: false, buzzerId: '', answers: {}, resting: {}, locked: {}, surrendered: {}, nextReady: {} }); }
+  if (qi + 1 >= total) {
+    window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { phase: 'final' });
+  } else {
+    window._update(window._ref(window._db, `quiz_rooms/${roomKey}`), { phase: 'playing', currentQIndex: qi + 1, revealIndex: 1, revealStopped: false, buzzerId: '', answers: {}, resting: {}, locked: {}, surrendered: {}, nextReady: {} });
+  }
 }
 
 function showFinalScreen(d) {
@@ -1626,10 +1790,9 @@ function showFinalScreen(d) {
   const pIds = Object.keys(players);
   const sorted = [...pIds].sort((a, b) => (players[b]?.score || 0) - (players[a]?.score || 0));
   const winner = players[sorted[0]];
-  document.getElementById('finalWinnerBadge').innerHTML = winner ? `<div class="final-winner-badge"> ${winner.name} の勝利！</div>` : '';
+  document.getElementById('finalWinnerBadge').innerHTML = winner ? `<div class="final-winner-badge">🏆 ${winner.name} の勝利！</div>` : '';
   document.getElementById('finalScoreTable').innerHTML = sorted.map((id, i) => `<tr><td class="final-rank">${i + 1}位</td><td class="final-name">${players[id]?.name || id}</td><td class="final-pts">${players[id]?.score || 0}点</td></tr>`).join('');
-  const playAgainBtn = document.getElementById('playAgainBtn');
-  if (!isHost) { playAgainBtn.style.display = 'none'; }
+  document.getElementById('playAgainBtn').style.display = isHost ? '' : 'none';
   document.getElementById('finalWaitMsg').textContent = isHost ? '' : 'ホストが次のゲームを開始するのを待っています...';
 }
 
